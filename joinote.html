@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>준비노트 — 취준/이직 준비 정리 & 코칭 웹</title>
+<style>
+  :root{
+    --bg:#f5f6fa;
+    --card:#ffffff;
+    --ink:#16181d;
+    --muted:#6b7280;
+    --line:#e5e7ee;
+    --blue:#2f6df6;
+    --blue-bg:#eaf1fd;
+    --green:#1f9b6b;
+    --green-bg:#e8f5ee;
+    --orange:#c26a1e;
+    --orange-bg:#fdf0e3;
+    --purple:#6b49c4;
+    --purple-bg:#f1eefb;
+    --red:#c03a3a;
+    --red-bg:#fbeceb;
+    --shadow:0 1px 2px rgba(0,0,0,.04), 0 6px 20px rgba(0,0,0,.05);
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+    color:var(--ink);
+    background:var(--bg);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:24px 18px 90px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .ico{
+    width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#2f6df6,#6b49c4);
+    display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;
+    box-shadow:var(--shadow);
+  }
+  .brand h1{font-size:19px;margin:0;font-weight:700;letter-spacing:-.3px}
+  .brand small{display:block;font-size:12.5px;color:var(--muted);font-weight:500}
+  .tagline{font-size:14.5px;color:var(--muted);max-width:560px}
+  .card{
+    background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:20px 22px;margin-bottom:18px;
+  }
+  .card h2{font-size:16px;margin:0 0 6px;font-weight:700}
+  .card .sub{font-size:13.5px;color:var(--muted);margin:0 0 14px}
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:8px}
+  .steps .s{
+    background:#f7f8fc;border:1px solid var(--line);border-radius:11px;padding:12px 12px;
+    font-size:13px;
+  }
+  .steps .s .n{
+    display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;
+    border-radius:8px;background:var(--blue-bg);color:var(--blue);font-weight:700;font-size:13px;margin-bottom:8px;
+  }
+  .steps .s b{display:block;font-size:14px;margin-bottom:3px}
+  .steps .s span{color:var(--muted);font-size:12.5px}
+  .flow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .flow .col h3{margin:0 0 8px;font-size:14px}
+  .flow .col ul{margin:0;padding:0;list-style:none}
+  .flow .col li{
+    padding:9px 11px;border:1px solid var(--line);border-radius:10px;margin-bottom:7px;
+    font-size:13.5px;background:#fafbfc;
+  }
+  .flow .col li .k{color:var(--blue);font-weight:600}
+  .row{display:grid;grid-template-columns:1fr;gap:12px}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:12.5px;color:var(--muted);font-weight:600}
+  .field input,.field select,.field textarea{
+    font:inherit;color:var(--ink);background:#fff;border:1px solid var(--line);
+    border-radius:10px;padding:10px 12px;outline:none;transition:border-color .15s;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--blue)}
+  .field textarea{resize:vertical;min-height:54px}
+  .row.wide{grid-template-columns:1fr 1fr}
+  .row.wide .field.wide{grid-column:1/-1}
+  .options{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .opt{
+    border:1.5px solid var(--line);border-radius:12px;padding:14px 14px;cursor:pointer;
+    background:#fff;transition:border-color .15s,background .15s;
+  }
+  .opt:hover{border-color:#c5cdf0}
+  .opt.selected{border-color:var(--blue);background:var(--blue-bg)}
+  .opt .t{font-weight:700;font-size:15px}
+  .opt .d{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .opt .ic{
+    display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+    border-radius:9px;background:#f0f2f8;margin-bottom:8px;font-weight:700;color:var(--blue);
+  }
+  .chosen{
+    margin-top:14px;padding:14px 16px;border-radius:12px;background:var(--blue-bg);
+    border:1px solid #c5cdf0;font-size:13.5px;color:#1c4fc1;
+  }
+  .chosen b{display:block;margin-bottom:3px;font-size:14px}
+  .chat{
+    background:#f7f8fc;border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+    min-height:160px;font-size:13.5px;
+  }
+  .chat .line{display:flex;gap:10px;margin-bottom:9px}
+  .chat .line .who{font-weight:700;font-size:12px;color:var(--blue);min-width:46px}
+  .chat .line .who.coach{color:var(--purple)}
+  .chat .line .msg{flex:1;background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+  .chat .line .msg.coach{border-left:3px solid var(--purple)}
+  .chat .line .msg.user{border-left:3px solid var(--blue)}
+  .chat .inputrow{display:flex;gap:8px;margin-top:10px}
+  .chat .inputrow input{
+    flex:1;font:inherit;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;
+  }
+  .chat .inputrow input:focus{outline:none;border-color:var(--blue)}
+  .btn{
+    font:inherit;border:none;cursor:pointer;border-radius:10px;padding:10px 16px;font-weight:600;
+    transition:background .15s,transform .05s;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:var(--blue);color:#fff}
+  .btn-primary:hover{background:#275cd6}
+  .btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .btn-ghost:hover{background:#f0f2f8}
+  .btn-sm{padding:7px 11px;font-size:13px;border-radius:8px}
+  .result{display:none}
+  .result.show{display:block}
+  .result .head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+  .result .head h3{margin:0;font-size:15px}
+  .result .head .meta{font-size:12.5px;color:var(--muted)}
+  .chiplist{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 4px}
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;
+    padding:5px 10px;font-size:12.5px;background:#f7f8fc;
+  }
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--blue)}
+  .chip.green{background:var(--green-bg);border-color:#c6e6d4}
+  .chip.green .dot{background:var(--green)}
+  .chip.orange{background:var(--orange-bg);border-color:#eccfa1}
+  .chip.orange .dot{background:var(--orange)}
+  .chip.purple{background:var(--purple-bg);border-color:#d9cdf4}
+  .chip.purple .dot{background:var(--purple)}
+  .block{
+    background:#fafbfc;border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:9px;
+  }
+  .block .h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px}
+  .block .h .t{font-weight:700;font-size:13.5px}
+  .block .h .sub{font-size:12px;color:var(--muted)}
+  .block .h .tag{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600}
+  .block .h .tag.green{background:var(--green-bg);color:#16724f}
+  .block .h .tag.orange{background:var(--orange-bg);color:#9a4f12}
+  .block .h .tag.purple{background:var(--purple-bg);color:#4f379b}
+  .block .body{font-size:13.5px}
+  .block .body li{list-style:none;margin-bottom:5px;padding-left:14px;position:relative}
+  .block .body li:before{content:"•";position:absolute;left:2px;color:var(--blue);font-weight:700}
+  .progress{
+    height:8px;background:#eef0f5;border-radius:999px;overflow:hidden;margin-top:8px;
+  }
+  .progress > div{height:100%;background:linear-gradient(90deg,#2f6df6,#6b49c4);border-radius:999px}
+  .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .pri{
+    border:1.5px dashed var(--line);border-radius:12px;padding:16px 18px;background:#fbfcff;
+  }
+  .pri h3{margin:0 0 6px;font-size:14.5px}
+  .pri p{margin:0 0 10px;font-size:13px;color:var(--muted)}
+  .pri .feat{display:flex;flex-direction:column;gap:6px}
+  .pri .feat label{
+    display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;
+  }
+  .pri .feat label input{accent-color:var(--blue)}
+  footer{font-size:12.5px;color:var(--muted);margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+  .toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:#16181d;color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;
+    box-shadow:0 8px 24px rgba(0,0,0,.22);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:60;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (max-width:680px){
+    .steps{grid-template-columns:1fr 1fr}
+    .flow{grid-template-columns:1fr}
+    .row.wide{grid-template-columns:1fr}
+    .options{grid-template-columns:1fr}
+    header.top{flex-direction:column;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="ico">J</div>
+      <div>
+        <h1>준비노트</h1>
+        <small>취업·이직·직무전환 준비 정리 & 코칭</small>
+      </div>
+    </div>
+    <div class="tagline">
+      내 경험을 AI와 대화로 정리하고,<br class="hide-mobile" />
+      희망 직무에 맞는 재료와 다음 준비를 뽑아보는 웹 서비스
+    </div>
+  </header>
+
+  <div class="card">
+    <h2>어떻게 시작하나요?</h2>
+    <p class="sub">먼저 준비 유형을 고르고, 내 상황을 조금 알려주면 됩니다. 그다음 AI와 대화하면서 경험을 정리해요.</p>
+    <div class="steps">
+      <div class="s"><div class="n">1</div><b>준비 유형 선택</b><span>신입 / 이직 / 직무전환</span></div>
+      <div class="s"><div class="n">2</div><b>기본 정보 입력</b><span>희망 직무, 현재 상태, 투자 시간</span></div>
+      <div class="s"><div class="n">3</div><b>AI와 대화</b><span>경험을 말하면 재료로 정리</span></div>
+      <div class="s"><div class="n">4</div><b>결과 확인</b><span>정리본·추천·다음 할 일</span></div>
+    </div>
+    <div class="flow">
+      <div class="col">
+        <h3>AI가 해주는 일</h3>
+        <ul>
+          <li><span class="k">재료 추출</span> — 흩어진 경험에서 쓸 만한 내용 정리</li>
+          <li><span class="k">코칭 질문</span> — 더 깊게 생각하게 돕는 질문</li>
+          <li><span class="k">정리</span> — 직무 재료로 보기 쉬운 형태로 변환</li>
+          <li><span class="k">추천</span> — 지금 더 필요한 준비 제안</li>
+        </ul>
+      </div>
+      <div class="col">
+        <h3>사용자가 얻는 것</h3>
+        <ul>
+          <li><span class="k">저장 가능한 정리본</span> — 다시 보고 수정 가능</li>
+          <li><span class="k">직무 연결 포인트</span> — 내 경험이 어디에 맞는지</li>
+          <li><span class="k">다음 준비 목록</span> — 막막함을 줄이는 실행 과제</li>
+          <li><span class="k">이력서·면접 재료</span> — 바로 써먹을 문장 후보</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1. 준비 유형 선택</h2>
+    <p class="sub">지금 상황에 가장 가까운 걸 고르세요. 나중에 바꿀 수도 있어요.</p>
+    <div class="options" id="typeOptions">
+      <div class="opt" data-kind="newbie">
+        <div class="ic">N</div>
+        <div class="t">신입</div>
+        <div class="d">첫 취업 준비. 경험을 쌓고 직무 언어로 옮기는 데 도움 필요</div>
+      </div>
+      <div class="opt" data-kind="switch">
+        <div class="ic">S</div>
+        <div class="t">이직</div>
+        <div class="d">경력을 바탕으로 다른 회사·역할로 이동 준비</div>
+      </div>
+      <div class="opt" data-kind="pivot">
+        <div class="ic">P</div>
+        <div class="t">직무전환</div>
+        <div class="d">기존 경력은 있지만 다른 직무로 바꾸는 준비</div>
+      </div>
+    </div>
+    <div class="chosen" id="chosenType" style="display:none"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. 기본 정보 입력</h2>
+    <p class="sub">대화가 더 잘 맞춰지도록 간단한 맥락을 알려줘요.</p>
+    <div class="row wide">
+      <div class="field">
+        <label for="fJob">희망 직무 / 분야</label>
+        <input id="fJob" type="text" placeholder="예: 마케팅, 웹기획, 회계, 개발, 디자인, 영업 등" />
+      </div>
+      <div class="field">
+        <label for="fLevel">현재 상태</label>
+        <select id="fLevel">
+          <option value="">선택</option>
+          <option value="student">학생 / 졸업 예정</option>
+          <option value="entry">신입 준비 중</option>
+          <option value="few">경력 1~3년</option>
+          <option value="mid">경력 3년 이상</option>
+          <option value="pivot">직무 전환 준비 중</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="fTime">하루에 쓸 수 있는 시간</label>
+        <select id="fTime">
+          <option value="">선택</option>
+          <option value="1">1시간 미만</option>
+          <option value="2">1~2시간</option>
+          <option value="3">2~3시간</option>
+          <option value="4">3시간 이상</option>
+        </select>
+      </div>
+      <div class="field wide">
+        <label for="fTarget">이번 준비의 목표 / 고민</label>
+        <textarea id="fTarget" placeholder="예: 이번 반기 안에 지원 준비 끝내고 싶어요 / 직무 경험이 부족해 보여서 걱정이에요"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>3. AI와 대화하며 정리하기</h2>
+    <p class="sub">아래 대화창에 경험을 편하게 말해보세요. AI가 재료를 뽑고, 필요하면 코칭 질문으로 더 정리해줘요.</p>
+    <div class="chat" id="chat">
+      <div class="line">
+        <div class="who coach">준비노트</div>
+        <div class="msg coach">안녕하세요. 먼저 준비 유형을 골라주시면, 그에 맞춰 질문을 드릴게요. 지금까지 해본 일이나 관심 가는 직무를 편하게 말해주셔도 됩니다.</div>
+      </div>
+      <div class="line">
+        <div class="who">나</div>
+        <div class="msg user">패션 브랜드 SNS 운영을 잠깐 해봤어요. 콘텐츠는 올렸는데 성과를 숫자로 정리한 건 별로 없어서, 이걸 어떻게 말해야 할지 모르겠어요.</div>
+      </div>
+      <div class="line">
+        <div class="who coach">준비노트</div>
+        <div class="msg coach">좋아요. 그 경험을 직무 재료로 바꾸려면, 먼저 “무엇을 했고, 어떤 결과가 있었는지”를 같이 잡아볼게요. 올린 콘텐츠가 어떤 반응이었는지 기억나는 게 있나요? 조회수, 저장, 문의, 팔로워 변화 같은 것 말이에요.</div>
+      </div>
+    </div>
+    <div class="inputrow">
+      <input id="chatInput" type="text" placeholder="경험을 말해보세요. 예: ㅇㅇ에서 ㄴㄴ 업무를 잠깐 해봤어요" />
+      <button class="btn btn-primary" id="chatSend">보내기</button>
+    </div>
+    <div style="margin-top:10px;font-size:12.5px;color:var(--muted)">
+      잠깐 예시예요. 실제로는 입력한 정보를 바탕으로 정리 결과를 생성해요.
+    </div>
+  </div>
+
+  <div class="card" id="resultCard">
+    <div class="head">
+      <div>
+        <h3 id="resultTitle">정리 결과</h3>
+        <div class="meta" id="resultMeta">신입 · 마케팅 계열 · 오늘 정리</div>
+      </div>
+      <div class="chiplist" id="resultChips"></div>
+    </div>
+
+    <div class="block">
+      <div class="h">
+        <span class="t">내 경험 재료</span>
+        <span class="sub">대화에서 뽑은 쓸 만한 내용</span>
+        <span class="tag green">재료</span>
+      </div>
+      <div class="body" id="blockMaterials">
+        <ul>
+          <li>콘텐츠 운영 경험 — SNS 게시물 작성/업로드, 채널 운영 보조</li>
+          <li>반응을 숫자로 정리한 자료가 부족해, 결과 표현 보강 필요</li>
+          <li>관심 분야와의 연결을 말하면 직무 경험으로 확장 가능</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="h">
+        <span class="t">강점 후보</span>
+        <span class="sub">희망 직무에서 강조해볼 만한 점</span>
+        <span class="tag green">강점</span>
+      </div>
+      <div class="body" id="blockStrengths">
+        <ul>
+          <li>실무 채널을 직접 다뤄본 경험</li>
+          <li>콘텐츠를 “올리는 것”에서 끝나지 않고 더 정리하고 싶어 하는 태도</li>
+          <li>표현을 직무 언어로 바꾸면 전달력이 좋아질 가능성</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="h">
+        <span class="t">더 필요한 준비</span>
+        <span class="sub">지금 상태에서 보완하면 좋은 것</span>
+        <span class="tag orange">추천</span>
+      </div>
+      <div class="body" id="blockNeeds">
+        <ul>
+          <li>내가 한 일의 결과를 숫자로 정리할 수 있는 자료 만들기</li>
+          <li>콘텐츠 운영에서 내가 맡은 범위를 더 명확히 적어보기</li>
+          <li>희망 직무에서 중요하게 보는 역량 1~2개를 먼저 정하기</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="h">
+        <span class="t">이번 주 추천</h3>
+        <span class="sub">막막함을 줄이는 다음 행동</span>
+        <span class="tag purple">코칭</span>
+      </div>
+      <div class="body" id="blockPlan">
+        <ul>
+          <li>내가 한 일을 한 줄 요약 3개로 먼저 적어보기</li>
+          <li>결과에 넣을 수 있는 숫자/반응을 10분만 찾아보기</li>
+          <li>희망 직무 공고 2개를 보고, 거기서 요구하는 표현을 체크하기</li>
+        </ul>
+      </div>
+      <div class="progress"><div style="width:38%"></div></div>
+    </div>
+
+    <div class="btnrow">
+      <button class="btn btn-primary" id="resultSave">정리본 저장</button>
+      <button class="btn btn-ghost" id="resultEdit">다시 수정</button>
+      <button class="btn btn-ghost" id="resultReset">처음으로</button>
+    </div>
+  </div>
+
+  <div class="card pri">
+    <h3>이런 부분도 준비돼 있어요</h3>
+    <p>처음엔 무료로 써보고, 정리 결과나 코칭이 더 필요하면 아래 기능을 강화될 수 있어요.</p>
+    <div class="feat">
+      <label><input type="checkbox" /> 저장한 정리본을 다시 보고 수정</label>
+      <label><input type="checkbox" /> 직무별로 더 세밀한 재료 정리</label>
+      <label><input type="checkbox" /> 이력서·면접 답변 재료로 변환</label>
+      <label><input type="checkbox" /> 기간 집중용 코칭/준비 추적</label>
+      <label><input type="checkbox" /> 자주 쓰이는 직군군 맞춤 프레임</label>
+    </div>
+    <div class="btnrow" style="margin-top:14px">
+      <button class="btn btn-primary" id="previewNext">다음 단계 체험하기</button>
+      <button class="btn btn-ghost" id="previewStartOver">처음부터 다시</button>
+    </div>
+  </div>
+
+  <footer>
+    준비노트 — 취준·이직·직무전환 준비를 정리하고 코칭하는 웹 서비스 체험판입니다.<br />
+    실제 AI 연동 전에는 예시 흐름으로 구조를 확인할 수 있어요.
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const state = {
+    kind:null,
+    job:$("fJob").value,
+    level:$("fLevel").value,
+    time:$("fTime").value,
+    target:$("fTarget").value,
+    saved:false
+  };
+  const toastEl = $("toast");
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(()=>toastEl.classList.remove("show"),1600);
+  }
+
+  // 유형 선택
+  const typeOpts = document.querySelectorAll("#typeOptions .opt");
+  const chosenTypeEl = $("chosenType");
+  typeOpts.forEach(el=>{
+    el.addEventListener("click",()=>{
+      typeOpts.forEach(o=>o.classList.remove("selected"));
+      el.classList.add("selected");
+      state.kind = el.dataset.kind;
+      const names = {newbie:"신입", switch:"이직", pivot:"직무전환"};
+      chosenTypeEl.style.display = "block";
+      chosenTypeEl.innerHTML = "<b>선택한 유형: " + names[state.kind] + "</b>" +
+        " 지금은 이 기준으로 예시를 보여드려요. 실제로는 이 유형에 맞는 질문과 정리 프레임이 달라져요.";
+      updateMeta();
+      toast("준비 유형을 선택했어요.");
+    });
+  });
+
+  // 입력 동기화
+  ["fJob","fLevel","fTime","fTarget"].forEach(id=>{
+    $(id).addEventListener("input",()=>{
+      state[id=== "fJob"?"job":id=== "fLevel"?"level":id=== "fTime"?"time":"target"] = $(id).value;
+      updateMeta();
+    });
+  });
+
+  function updateMeta(){
+    const parts = [];
+    if(state.kind) parts.push({newbie:"신입",switch:"이직",pivot:"직무전환"}[state.kind]);
+    if(state.job) parts.push(state.job);
+    if(state.level) parts.push(state.level);
+    $("resultMeta").textContent = parts.length ? parts.join(" · ") + " · 준비 정리" : "정보 입력 후 결과가 보여요";
+  }
+
+  // 대화창 체험
+  const chat = $("chat");
+  const chatInput = $("chatInput");
+  $("chatSend").addEventListener("click",()=>sendChat());
+  chatInput.addEventListener("keydown",e=>{
+    if(e.key==="Enter"){ e.preventDefault(); sendChat(); }
+  });
+  function sendChat(){
+    const text = chatInput.value.trim();
+    if(!text){ toast("대화를 입력해보세요."); return; }
+    appendChat("나", text, "user");
+    chatInput.value = "";
+    scrollChat();
+    // 체험용 응답
+    setTimeout(()=>{
+      const reply = makeReply(text);
+      appendChat("준비노트", reply, "coach");
+      scrollChat();
+    }, 700);
+  }
+  function appendChat(who, text, cls){
+    const line = document.createElement("div");
+    line.className = "line";
+    line.innerHTML = `
+      <div class="who ${cls==="coach"?"coach":""}">${who}</div>
+      <div class="msg ${cls}"></div>
+    `;
+    line.querySelector(".msg").textContent = text;
+    chat.appendChild(line);
+  }
+  function scrollChat(){
+    chat.scrollTop = chat.scrollHeight;
+  }
+  function makeReply(text){
+    const lower = text.toLowerCase();
+    if(lower.includes("포트폴리오") || lower.includes("작품")){
+      return "좋아요. 포트폴리오는 ‘무엇을 했는지’보다 ‘어떤 판단으로 만들었는지’가 같이 보이면 더 강해져요. 그 작업에서 가장 중요하게 생각한 기준 한 가지를 먼저 말해볼 수 있을까요?";
+    }
+    if(lower.includes("면접") || lower.includes("질문")){
+      return "면접은 준비된 답변을 외우는 것보다, 내 경험에서 바로 꺼내 쓸 수 있는 재료가 중요해요. 최근에 가장 설명하기 어려웠던 경험 하나만 골라서, 그 안에서 내가 실제로 한 역할부터 적어볼까요?";
+    }
+    if(lower.includes("이력서") || lower.includes("경력") || lower.includes("경력기술")){
+      return "이력서에 쓸 때는 ‘한 일’만 나열하기보다, ‘무엇을 위해, 어떤 범위에서, 어떤 결과로 연결됐는지’가 같이 보이면 좋아요. 가장 최근 경험 하나만 골라서, 맡은 범위와 결과를 같이 정리해봐요.";
+    }
+    if(lower.includes("막막") || lower.includes("뭐부터") || lower.includes("시작")){
+      return "시작이 막막하면, 먼저 정리 범위를 줄이는 게 좋아요. 이번 주에 끝낼 수 있는 것 하나만 정해서, ‘내가 한 일 / 아직 부족한 것 / 지금 할 수 있는 다음 행동’ 이 세 줄로만 적어보는 것부터 해봐요.";
+    }
+    if(lower.includes("직무") || lower.includes("전환") || lower.includes("바꾸")){
+      return "직무 전환을 고민할 땐, 지금 경험과 새 직무 사이의 공통점을 먼저 찾아보는 게 좋아요. 지금 해온 일 중에서 새 직무에도 쓸 수 있는 스킬이나 태도가 하나라도 있으면 말해줘요. 그걸 기준으로 연결해볼게요.";
+    }
+    return "경험을 조금만 더 풀어주실 수 있을까요? 예를 들어 어떤 상황에서, 어떤 역할을 했고, 어떤 점이 어렵거나 좋았는지 알려주시면 그걸 직무 재료로 정리해볼게요.";
+  }
+
+  // 결과 표시
+  const resultCard = $("resultCard");
+  $("previewNext").addEventListener("click",()=>{
+    if(!state.kind){ toast("먼저 준비 유형을 선택해주세요."); return; }
+    resultCard.classList.add("show");
+    updateMeta();
+    toast("정리 결과 화면으로 넘어왔어요.");
+  });
+  $("resultEdit").addEventListener("click",()=>{
+    toast("지금은 체험판이라 대화를 이어서 수정한다고 가정해요.");
+  });
+  $("resultSave").addEventListener("click",()=>{
+    state.saved = true;
+    toast("정리본이 저장됐어요. 다시 보고 수정할 수 있어요.");
+  });
+  $("resultReset").addEventListener("click",()=>{
+    resultCard.classList.remove("show");
+    toast("처음으로 돌아갔어요.");
+  });
+  $("previewStartOver").addEventListener("click",()=>{
+    resultCard.classList.remove("show");
+    state.kind = null;
+    typeOpts.forEach(o=>o.classList.remove("selected"));
+    chosenTypeEl.style.display = "none";
+    $("fJob").value = "";
+    $("fLevel").value = "";
+    $("fTime").value = "";
+    $("fTarget").value = "";
+    state.job=""; state.level=""; state.time=""; state.target="";
+    chat.innerHTML = "";
+    appendChat("준비노트","안녕하세요. 먼저 준비 유형을 골라주시면, 그에 맞춰 질문을 드릴게요. 지금까지 해본 일이나 관심 가는 직무를 편하게 말해주셔도 됩니다.","coach");
+    updateMeta();
+    toast("처음 상태로 돌아갔어요.");
+  });
+
+  updateMeta();
+  // 시작 시 한 번 더 안내
+  toast("먼저 위쪽에서 준비 유형을 선택해보세요.");
+})();
+</script>
+</body>
+</html>
