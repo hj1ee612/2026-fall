@@ -12,7 +12,7 @@
   /* Layout: one column. Schematic Seoul map on top, numbered pins match the numbered cards below. */
   --bg:#EFF1F3; --card:#FFFFFF; --ink:#101828; --muted:#566074; --line:#D5DAE1; --on:#FFFFFF;
   --land:#E3E7EB; --water:#B7D3EA; --waterink:#4F7BA3;
-  --c-eat:#D83A2E; --c-do:#1F6FD6; --c-cvs:#138A4B; --c-oy:#9A6412; --c-saved:#101828; --c-rank:#7A3FC4;
+  --c-eat:#D83A2E; --c-do:#1F6FD6; --c-cvs:#138A4B; --c-oy:#9A6412; --c-saved:#101828; --c-shop:#C2185B; --c-rank:#7A3FC4;
   --f-display:'Black Han Sans','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   --f-body:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   color-scheme:light;
@@ -21,14 +21,14 @@
   :root:not([data-theme="light"]){
     --bg:#0E131B; --card:#171E29; --ink:#F1F4F8; --muted:#A3AEC0; --line:#2A3443; --on:#0E131B;
     --land:#1B2431; --water:#27496B; --waterink:#8FB6DA;
-    --c-eat:#FF7467; --c-do:#6BA6FF; --c-cvs:#43CF86; --c-oy:#E8B04A; --c-saved:#F1F4F8; --c-rank:#B98CF0;
+    --c-eat:#FF7467; --c-do:#6BA6FF; --c-cvs:#43CF86; --c-oy:#E8B04A; --c-saved:#F1F4F8; --c-shop:#FF7DB0; --c-rank:#B98CF0;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0E131B; --card:#171E29; --ink:#F1F4F8; --muted:#A3AEC0; --line:#2A3443; --on:#0E131B;
   --land:#1B2431; --water:#27496B; --waterink:#8FB6DA;
-  --c-eat:#FF7467; --c-do:#6BA6FF; --c-cvs:#43CF86; --c-oy:#E8B04A; --c-saved:#F1F4F8; --c-rank:#B98CF0;
+  --c-eat:#FF7467; --c-do:#6BA6FF; --c-cvs:#43CF86; --c-oy:#E8B04A; --c-saved:#F1F4F8; --c-shop:#FF7DB0; --c-rank:#B98CF0;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -148,11 +148,12 @@ var UI = {
   ko: {
     h1: "한국인이 진짜 가는 곳",
     sub: "서울의 맛집, 할 것, 편의점과 올리브영 추천을 지도에서 찾아보세요.",
-    cats: { eat: "맛집", do: "할 것", cvs: "편의점", oy: "올리브영", rank: "랭킹", saved: "저장" },
+    cats: { eat: "맛집", do: "할 것", shop: "쇼핑", cvs: "편의점", oy: "올리브영", rank: "랭킹", saved: "저장" },
     foodAll: "전체 음식", src: "출처", asof: "기준", kRank: "순위", kList: "선정 목록 (순위 아님)", noRank: "공식 순위를 찾지 못했어요", fnote: "음식 종류를 고르면 해당하는 곳만 보여요.",
     notes: {
       eat: "지도의 번호와 아래 카드의 번호가 같아요. 동네 원을 누르면 확대돼요.",
       do: "지도의 번호와 아래 카드의 번호가 같아요. 동네 원을 누르면 확대돼요.",
+      shop: "대표적인 쇼핑 거리와 시장이에요. 순위가 아니라 직접 고른 목록이고, 가게 정보는 네이버지도 링크에서 확인할 수 있어요.",
       cvs: "순위가 아니라 한국인이 자주 사는 조합을 고른 목록이에요. 편의점은 서울 어디에나 있어서 지도 없이 보여드려요. 매장마다 판매 여부가 달라요.",
       oy: "순위가 아니라 꾸준히 사랑받는 제품을 고른 목록이에요. 지도의 점은 큰 매장이 모여 있는 동네예요. 여권이 있으면 바로 면세를 받을 수 있는 매장이 많으니 조건은 매장에서 확인하세요. 실시간 순위는 올리브영 앱의 랭킹 메뉴에서 볼 수 있어요.",
       rank: "출처와 기준일이 있는 자료만 모았어요. 실시간 순위가 아니라 발표된 시점의 결과예요.",
@@ -167,11 +168,12 @@ var UI = {
   en: {
     h1: "Where Koreans actually go",
     sub: "Find Seoul eats, things to do, and convenience-store and Olive Young picks on the map.",
-    cats: { eat: "Eat", do: "Do", cvs: "Convenience", oy: "Olive Young", rank: "Rankings", saved: "Saved" },
+    cats: { eat: "Eat", do: "Do", shop: "Shop", cvs: "Convenience", oy: "Olive Young", rank: "Rankings", saved: "Saved" },
     foodAll: "All food", src: "Source", asof: "As of", kRank: "Ranking", kList: "Curated list (not a ranking)", noRank: "No official ranking found", fnote: "Pick a food type to filter.",
     notes: {
       eat: "Pin numbers match the card numbers below. Tap a neighborhood circle to zoom in.",
       do: "Pin numbers match the card numbers below. Tap a neighborhood circle to zoom in.",
+      shop: "Well-known shopping streets and markets. A hand-picked list, not a ranking. Use the Naver Map link for shop details.",
       cvs: "Not a ranking. These are combinations Koreans buy often. Convenience stores are everywhere in Seoul, so there is no map. Stock varies by store.",
       oy: "Not a ranking. These are long-time favorites. Dots on the map show neighborhoods with big stores. Many stores give an instant tax refund if you show your passport; check the conditions in store. Live rankings are in the Olive Young app's ranking menu.",
       rank: "Only published data with a source and date. These are snapshots, not live rankings.",
@@ -275,6 +277,24 @@ var DATA = [
   { id: "e18", cat: "eat", f: "meat", area: "seongsu", p: [37.5405, 127.069],
     ko: ["건대 양꼬치 거리", "", "양꼬치와 칭다오 맥주를 파는 중식 양꼬치집이 모인 거리예요. 대학생이 많이 와요.", "꼬치를 쯔란 가루에 찍어 먹어요."],
     en: ["Konkuk Univ. Lamb Skewer Street", "", "A street of Chinese-style lamb skewer restaurants, popular with university students.", "Dip the skewers in cumin (zira) powder."] },
+  { id: "d8", cat: "do", area: "jongno", p: [37.5796, 126.9770],
+    ko: ["경복궁 한복 체험", "", "경복궁 근처에서 한복을 빌려 입고 궁을 걸어볼 수 있어요.", "대여점마다 가격과 시간이 달라서 예약 조건을 먼저 확인하세요."],
+    en: ["Hanbok try-on at Gyeongbokgung", "", "Rent a hanbok near the palace and walk the palace grounds in it.", "Prices and hours differ by rental shop, so check booking terms first."] },
+  { id: "s1", cat: "shop", area: "dongdae", p: [37.5667, 127.009],
+    ko: ["동대문 패션 시장", "", "옷 도매·소매 상가가 모인 곳이에요. 밤늦게까지 여는 상가가 많아요.", "가게마다 영업시간과 카드 사용 여부가 달라서 현금을 조금 챙기면 편해요."],
+    en: ["Dongdaemun Fashion Market", "", "Clusters of wholesale and retail clothing malls, many open late into the night.", "Hours and card acceptance vary by shop, so carry a little cash."] },
+  { id: "s2", cat: "shop", area: "jongno", p: [37.5593, 126.9774],
+    ko: ["남대문시장", "", "옷, 주방용품, 먹거리를 파는 서울의 큰 전통시장이에요.", "흥정이 되는 가게도 있어요. 예의 있게 물어보세요."],
+    en: ["Namdaemun Market", "", "One of Seoul's big traditional markets, selling clothes, kitchenware and food.", "Some shops allow bargaining; ask politely."] },
+  { id: "s3", cat: "shop", area: "jongno", p: [37.5742, 126.9857],
+    ko: ["인사동 거리", "", "전통 공예품, 찻집, 기념품 가게가 이어지는 거리예요.", "기념품은 가게마다 가격 차이가 커서 두세 곳을 비교해 보세요."],
+    en: ["Insadong Street", "", "A street of traditional crafts, tea houses and souvenir shops.", "Souvenir prices differ by shop, so compare two or three."] },
+  { id: "s4", cat: "shop", area: "jongno", p: [37.5636, 126.9856],
+    ko: ["명동 쇼핑거리", "", "화장품과 옷 가게, 길거리 음식이 모인 대표 관광 쇼핑가예요.", "화장품은 가게마다 증정품이 달라요. 외국인 대상 면세 조건은 매장에서 확인하세요."],
+    en: ["Myeongdong Shopping Street", "", "A major tourist shopping district of cosmetics, clothes and street food.", "Free gifts differ by store. Ask in store about tax-refund conditions."] },
+  { id: "s5", cat: "shop", area: "hongdae", p: [37.5565, 126.9235],
+    ko: ["홍대 상점가", "", "패션, 문구, 소품 가게와 거리 공연이 이어지는 젊은 동네예요.", "저녁에 가면 거리 공연도 볼 수 있어요."],
+    en: ["Hongdae Shopping Streets", "", "Fashion, stationery and small-goods shops in a youthful neighborhood with street performances.", "Go in the evening to catch street performances."] },
   { id: "d1", cat: "do", area: "seongsu", p: [37.5444, 127.0374],
     ko: ["서울숲 산책", "", "성수동 옆에 있는 큰 공원이에요. 산책한 뒤 근처 카페 거리로 이어지는 코스가 흔해요.", "카페 거리까지 걸어서 이동할 수 있어요."],
     en: ["Seoul Forest walk", "", "A large park next to Seongsu. A common plan is a stroll here, then the café streets nearby.", "The café streets are within walking distance."] },
@@ -354,7 +374,8 @@ var QUERY = {
   e4: ["광장시장", "Gwangjang Market"], e5: ["통인시장", "Tongin Market"], e6: ["뚝섬한강공원", "Ttukseom Hangang Park"],
   d1: ["서울숲", "Seoul Forest"], d2: ["성수동 팝업스토어", "Seongsu-dong pop-up store"], d3: ["경의선숲길", "Gyeongui Line Forest Park"],
   d4: ["홍대 걷고싶은거리", "Hongdae Walking Street"], d5: ["을지로 힙지로", "Euljiro Hipjiro"], d6: ["청계천", "Cheonggyecheon"],
-  d7: ["여의도한강공원", "Yeouido Hangang Park"],
+  d7: ["여의도한강공원", "Yeouido Hangang Park"], d8: ["경복궁", "Gyeongbokgung Palace"],
+  s1: ["동대문 패션타운", "Dongdaemun Fashion Town"], s2: ["남대문시장", "Namdaemun Market"], s3: ["인사동길", "Insadong-gil"], s4: ["명동 쇼핑거리", "Myeongdong Shopping Street"], s5: ["홍대 쇼핑거리", "Hongdae Shopping Street"],
   e7: ["신당동 떡볶이타운", "Sindang-dong Tteokbokki Town"], e8: ["동대문 닭한마리 골목", "Dongdaemun Dak Hanmari Alley"], e9: ["마장동 축산물시장", "Majang-dong Meat Market"], e10: ["공덕시장 족발골목", "Gongdeok Market Jokbal Street"], e11: ["노량진수산시장", "Noryangjin Fish Market"], e12: ["남대문시장 칼국수골목", "Namdaemun Market Kalguksu Alley"], e13: ["무교동 낙지골목", "Mugyo-dong Nakji Alley"], e14: ["청진동 해장국골목", "Cheongjin-dong Haejangguk Alley"], e15: ["익선동 한옥거리", "Ikseon-dong Hanok Street"], e16: ["연남동 경의선숲길", "Yeonnam-dong Gyeongui Line Forest Park"], e17: ["성수동 연무장길", "Seongsu Yeonmujang-gil"], e18: ["건대 양꼬치거리", "Konkuk University Lamb Skewer Street"]
 };
 
@@ -416,6 +437,12 @@ var RANKS = [
     items: [["두바이 초콜릿","Dubai chocolate",""]],
     src: "비즈워치, BGF리테일 발표", sen: "BizWatch, citing BGF Retail",
     url: "https://news.bizwatch.co.kr/article/consumer/2025/01/09/0010" },
+  { id: "r7", kind: "list",
+    ko: "블루리본 서울의 맛집 2026: 새로 '리본 3개' 6곳", en: "Blue Ribbon Seoul 2026: 6 newly awarded three-ribbon restaurants",
+    asof: "2025-11", n: "독자 평가 기반, 서울 전체 1,560곳 중 최고 등급 신규만", nen: "Reader-rated; only the new top-tier entries out of 1,560 Seoul listings",
+    items: [["가겐 (모던 가이세키)","Gagen (modern kaiseki)",""],["모수서울 (안성재 셰프)","Mosu Seoul",""],["소수헌 (스시)","Sosuheon (sushi)",""],["소울다이닝 (모던 한식)","Soul Dining (modern Korean)",""],["하네 (스시)","Hane (sushi)",""],["호빈 (중식)","Hobin (Chinese)",""]],
+    src: "위키트리 보도 (블루리본서베이 <서울의 맛집 2026> 기준)", sen: "WikiTree report on Blue Ribbon Survey's Seoul 2026 edition",
+    url: "https://www.wikitree.co.kr/articles/1101372" },
   { id: "r6", kind: "list",
     ko: "2026 미쉐린 빕 구르망 서울 신규 5곳", en: "Michelin Bib Gourmand Seoul 2026: 5 new entries",
     asof: "2026", n: "신규 선정만, 순서 없음", nen: "New entries only, no order",
@@ -424,7 +451,7 @@ var RANKS = [
     url: "https://www.wikitree.co.kr/articles/1122865" }
 ];
 
-var CAT_ORDER = ["eat", "do", "cvs", "oy", "rank", "saved"];
+var CAT_ORDER = ["eat", "do", "shop", "cvs", "oy", "rank", "saved"];
 var state = { lang: "ko", cat: "eat", area: "all", food: "all", sel: null, saved: [] };
 
 try {
@@ -443,7 +470,7 @@ function persist() {
 function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 function areaOf(id) { return AREAS.filter(function (a) { return a.id === id; })[0]; }
 function catColor(c) { return "var(--c-" + c + ")"; }
-function isGeo() { return state.cat === "eat" || state.cat === "do"; }
+function isGeo() { return state.cat === "eat" || state.cat === "do" || state.cat === "shop"; }
 
 /* 1 degree of longitude is about 88 km and 1 degree of latitude about 111 km here, so the map keeps true proportions. */
 function proj(lat, lng) { return [(lng - 126.885) * 1714.3, (37.595 - lat) * 2162]; }
@@ -558,10 +585,11 @@ function render() {
     list.innerHTML = "<p class=\"empty\">" + esc(L.empty) + "</p>";
     return;
   }
+  var tail = state.cat === "eat" ? ctCard(state.lang === "ko") : "";
   list.innerHTML = items.map(function (i, idx) {
     var t = i[state.lang];
     var isSaved = state.saved.indexOf(i.id) > -1;
-    var geo = i.cat === "eat" || i.cat === "do";
+    var geo = i.cat === "eat" || i.cat === "do" || i.cat === "shop";
     var tag = geo ? areaOf(i.area)[state.lang === "ko" ? "kl" : "el"] : t[1];
     var num = (geo && state.cat !== "saved") ? "<span class=\"n\">" + (idx + 1) + "</span>" : "";
     var loc = (geo && state.cat !== "saved") ? "<button type=\"button\" class=\"loc\" data-loc=\"" + i.id + "\">" + esc(L.showmap) + "</button>" : "";
@@ -575,7 +603,13 @@ function render() {
       "<p class=\"desc\">" + esc(t[2]) + "</p>" +
       "<p class=\"tip\"><b>" + esc(L.memo) + "</b>" + esc(t[3]) + "</p>" + links +
       "</article>";
-  }).join("");
+  }).join("") + tail;
+}
+
+function ctCard(ko) {
+  var t = ko ? "한국 전화번호 없이 이메일로 가입해서 예약과 웨이팅을 할 수 있는 외국인용 버전이 있어요. 블루리본 선정 식당 정보도 글로벌 앱에서 볼 수 있어요. 이 사이트는 식당 데이터를 가져오지 않고 링크로만 연결해요."
+              : "CatchTable Global lets visitors sign up with an email address, no Korean phone number needed, to book tables and join waitlists. Blue Ribbon restaurants are listed in the global app too. This site only links out and does not copy their data.";
+  return "<article class=\"card\" style=\"--cc:" + catColor("rank") + "\"><h3>" + (ko ? "캐치테이블 글로벌에서 더 찾기·예약" : "Find more & book on CatchTable Global") + "</h3><p class=\"desc\">" + esc(t) + "</p><div class=\"openrow\"><a class=\"gbtn\" href=\"https://www.catchtable.net\" target=\"_blank\" rel=\"noopener\">" + (ko ? "캐치테이블 글로벌 열기" : "Open CatchTable Global") + "</a><a class=\"alt\" href=\"https://www.catchtable.net/ranking/location/location-all\" target=\"_blank\" rel=\"noopener\">" + (ko ? "지역별 랭킹" : "Area rankings") + "</a></div></article>";
 }
 
 function renderRanks(L) {
@@ -596,8 +630,7 @@ function renderRanks(L) {
   }).join("");
   var oy = ko ? "올리브영: 공식 순위 자료를 찾지 못해서 비워뒀어요. 올리브영 앱의 랭킹 메뉴에서 실시간 순위를 볼 수 있어요." : "Olive Young: I could not find an official ranking, so none is shown. The Olive Young app has a live ranking menu.";
   html += "<article class=\"card\" style=\"--cc:" + catColor("oy") + "\"><h3>" + esc(L.cats.oy) + "</h3><p class=\"desc\">" + esc(oy) + "</p></article>";
-  var ct = ko ? "캐치테이블의 지역별 맛집 랭킹은 앱·웹에서 실시간으로 확인할 수 있어요. 데이터를 가져오지 않고 링크로만 연결해요." : "CatchTable shows live restaurant rankings by area in its app and site. This page only links to it and does not copy the data.";
-  html += "<article class=\"card\" style=\"--cc:" + catColor("rank") + "\"><h3>CatchTable</h3><p class=\"desc\">" + esc(ct) + "</p><div class=\"openrow\"><a class=\"gbtn\" href=\"https://www.catchtable.net/ranking/location/location-all\" target=\"_blank\" rel=\"noopener\">" + (ko ? "캐치테이블 랭킹 열기" : "Open CatchTable rankings") + "</a></div></article>";
+  html += ctCard(ko);
   document.getElementById("list").innerHTML = html;
 }
 
