@@ -12,7 +12,7 @@
   /* Layout: one column. Schematic Seoul map on top, numbered pins match the numbered cards below. */
   --bg:#EFF1F3; --card:#FFFFFF; --ink:#101828; --muted:#566074; --line:#D5DAE1; --on:#FFFFFF;
   --land:#E3E7EB; --water:#B7D3EA; --waterink:#4F7BA3;
-  --c-eat:#D83A2E; --c-do:#1F6FD6; --c-cvs:#138A4B; --c-oy:#9A6412; --c-saved:#101828;
+  --c-eat:#D83A2E; --c-do:#1F6FD6; --c-cvs:#138A4B; --c-oy:#9A6412; --c-saved:#101828; --c-rank:#7A3FC4;
   --f-display:'Black Han Sans','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   --f-body:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
   color-scheme:light;
@@ -21,14 +21,14 @@
   :root:not([data-theme="light"]){
     --bg:#0E131B; --card:#171E29; --ink:#F1F4F8; --muted:#A3AEC0; --line:#2A3443; --on:#0E131B;
     --land:#1B2431; --water:#27496B; --waterink:#8FB6DA;
-    --c-eat:#FF7467; --c-do:#6BA6FF; --c-cvs:#43CF86; --c-oy:#E8B04A; --c-saved:#F1F4F8;
+    --c-eat:#FF7467; --c-do:#6BA6FF; --c-cvs:#43CF86; --c-oy:#E8B04A; --c-saved:#F1F4F8; --c-rank:#B98CF0;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0E131B; --card:#171E29; --ink:#F1F4F8; --muted:#A3AEC0; --line:#2A3443; --on:#0E131B;
   --land:#1B2431; --water:#27496B; --waterink:#8FB6DA;
-  --c-eat:#FF7467; --c-do:#6BA6FF; --c-cvs:#43CF86; --c-oy:#E8B04A; --c-saved:#F1F4F8;
+  --c-eat:#FF7467; --c-do:#6BA6FF; --c-cvs:#43CF86; --c-oy:#E8B04A; --c-saved:#F1F4F8; --c-rank:#B98CF0;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -59,6 +59,16 @@ h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,9vw,48px);l
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:5px 13px;font-size:14px;font-weight:600;min-height:36px}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chips.foods .chip{font-size:13px;min-height:32px;padding:3px 11px}
+.rk{margin:0 0 4px;padding:0;list-style:none}
+.rk li{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid var(--line);font-size:15px}
+.rk li:first-child{border-top:0}
+.rk .r{flex:none;width:22px;font-weight:700;color:var(--cc)}
+.rk .v{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px}
+.rk h4{margin:10px 0 2px;font-size:13px;color:var(--muted);font-weight:600}
+.src{margin-top:8px;font-size:12.5px;color:var(--muted)}
+.src a{color:inherit}
+.kind{display:inline-block;font-size:12px;font-weight:700;border:1.5px solid var(--cc);color:var(--cc);border-radius:999px;padding:1px 8px;margin-left:6px}
 
 .mapwrap{margin-top:14px}
 .mapbox{aspect-ratio:3/2;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--land)}
@@ -120,6 +130,7 @@ h3{margin:2px 0 6px;font-size:18px;line-height:1.3;font-weight:600}
 
   <nav class="cats" id="cats" aria-label="Category"></nav>
   <div class="chips" id="chips" aria-label="Neighborhood"></div>
+  <div class="chips foods" id="foods" aria-label="Food type"></div>
 
   <section class="mapwrap" id="mapwrap">
     <div class="mapbox" id="mapbox"></div>
@@ -137,12 +148,14 @@ var UI = {
   ko: {
     h1: "한국인이 진짜 가는 곳",
     sub: "서울의 맛집, 할 것, 편의점과 올리브영 추천을 지도에서 찾아보세요.",
-    cats: { eat: "맛집", do: "할 것", cvs: "편의점", oy: "올리브영", saved: "저장" },
+    cats: { eat: "맛집", do: "할 것", cvs: "편의점", oy: "올리브영", rank: "랭킹", saved: "저장" },
+    foodAll: "전체 음식", src: "출처", asof: "기준", kRank: "순위", kList: "선정 목록 (순위 아님)", noRank: "공식 순위를 찾지 못했어요", fnote: "음식 종류를 고르면 해당하는 곳만 보여요.",
     notes: {
       eat: "지도의 번호와 아래 카드의 번호가 같아요. 동네 원을 누르면 확대돼요.",
       do: "지도의 번호와 아래 카드의 번호가 같아요. 동네 원을 누르면 확대돼요.",
       cvs: "순위가 아니라 한국인이 자주 사는 조합을 고른 목록이에요. 편의점은 서울 어디에나 있어서 지도 없이 보여드려요. 매장마다 판매 여부가 달라요.",
       oy: "순위가 아니라 꾸준히 사랑받는 제품을 고른 목록이에요. 지도의 점은 큰 매장이 모여 있는 동네예요. 여권이 있으면 바로 면세를 받을 수 있는 매장이 많으니 조건은 매장에서 확인하세요. 실시간 순위는 올리브영 앱의 랭킹 메뉴에서 볼 수 있어요.",
+      rank: "출처와 기준일이 있는 자료만 모았어요. 실시간 순위가 아니라 발표된 시점의 결과예요.",
       saved: "하트를 눌러 저장한 곳이에요."
     },
     memo: "로컬 메모", empty: "아직 저장한 곳이 없어요. 카드의 하트를 눌러 보세요.",
@@ -154,12 +167,14 @@ var UI = {
   en: {
     h1: "Where Koreans actually go",
     sub: "Find Seoul eats, things to do, and convenience-store and Olive Young picks on the map.",
-    cats: { eat: "Eat", do: "Do", cvs: "Convenience", oy: "Olive Young", saved: "Saved" },
+    cats: { eat: "Eat", do: "Do", cvs: "Convenience", oy: "Olive Young", rank: "Rankings", saved: "Saved" },
+    foodAll: "All food", src: "Source", asof: "As of", kRank: "Ranking", kList: "Curated list (not a ranking)", noRank: "No official ranking found", fnote: "Pick a food type to filter.",
     notes: {
       eat: "Pin numbers match the card numbers below. Tap a neighborhood circle to zoom in.",
       do: "Pin numbers match the card numbers below. Tap a neighborhood circle to zoom in.",
       cvs: "Not a ranking. These are combinations Koreans buy often. Convenience stores are everywhere in Seoul, so there is no map. Stock varies by store.",
       oy: "Not a ranking. These are long-time favorites. Dots on the map show neighborhoods with big stores. Many stores give an instant tax refund if you show your passport; check the conditions in store. Live rankings are in the Olive Young app's ranking menu.",
+      rank: "Only published data with a source and date. These are snapshots, not live rankings.",
       saved: "Places you saved with the heart."
     },
     memo: "Local note", empty: "Nothing saved yet. Tap the heart on a card.",
@@ -176,7 +191,10 @@ var AREAS = [
   { id: "hongdae", ko: "홍대",   en: "Hongdae",   kl: "홍대·연남·망원",    el: "Hongdae, Yeonnam, Mangwon" },
   { id: "euljiro", ko: "을지로", en: "Euljiro",   kl: "을지로",           el: "Euljiro" },
   { id: "jongno",  ko: "종로",   en: "Jongno",    kl: "종로·서촌",         el: "Jongno, Seochon" },
-  { id: "hangang", ko: "한강",   en: "Han River", kl: "한강공원",          el: "Han River Park" }
+  { id: "hangang", ko: "한강",   en: "Han River", kl: "한강공원",          el: "Han River Park" },
+  { id: "dongdae", ko: "동대문·신당", en: "Dongdaemun", kl: "동대문·신당·마장", el: "Dongdaemun, Sindang, Majang" },
+  { id: "mapo",    ko: "공덕",   en: "Gongdeok",  kl: "공덕·마포",         el: "Gongdeok, Mapo" },
+  { id: "noryang", ko: "노량진", en: "Noryangjin", kl: "노량진",          el: "Noryangjin" }
 ];
 
 /* Map view per neighborhood: center [lat, lng], zoom, and where its bubble sits on the overview. */
@@ -186,7 +204,10 @@ var VIEW = {
   hongdae: { c: [37.5555, 126.9170], z: 4,   b: [37.5560, 126.9170] },
   euljiro: { c: [37.5665, 126.9920], z: 6,   b: [37.5665, 126.9925] },
   jongno:  { c: [37.5745, 126.9840], z: 3.2, b: [37.5780, 126.9760] },
-  hangang: { c: [37.5290, 127.0000], z: 1.3, b: [37.5240, 126.9800] }
+  hangang: { c: [37.5290, 127.0000], z: 1.3, b: [37.5240, 126.9800] },
+  dongdae: { c: [37.5650, 127.0200], z: 3.6, b: [37.5650, 127.0150] },
+  mapo:    { c: [37.5440, 126.9520], z: 6,   b: [37.5440, 126.9520] },
+  noryang: { c: [37.5133, 126.9420], z: 6,   b: [37.5133, 126.9420] }
 };
 
 var RIVER = [[37.5625,126.8850],[37.5535,126.8977],[37.5445,126.9016],[37.5415,126.9140],[37.5395,126.9360],[37.5385,126.9450],[37.5300,126.9500],[37.5175,126.9590],[37.5122,126.9808],[37.5130,126.9960],[37.5250,127.0130],[37.5300,127.0230],[37.5338,127.0365],[37.5300,127.0500],[37.5270,127.0640],[37.5225,127.0780],[37.5170,127.0950]];
@@ -199,25 +220,61 @@ var OY_SPOTS = [
 
 /* ko/en: [name, kind, description, local note]; p: [lat, lng] */
 var DATA = [
-  { id: "e1", cat: "eat", area: "seongsu", p: [37.5445, 127.0560],
+  { id: "e1", cat: "eat", f: "cafe", area: "seongsu", p: [37.5445, 127.0560],
     ko: ["어니언 성수", "", "옛 공장 건물을 고친 베이커리 카페예요. 빵 종류가 많고 주말 오후에는 줄이 길어요.", "평일 오전에 가면 덜 붐벼요."],
     en: ["Onion Seongsu", "", "A bakery café in a converted factory building. Big pastry selection, and long lines on weekend afternoons.", "Go on a weekday morning to skip the crowd."] },
-  { id: "e2", cat: "eat", area: "hongdae", p: [37.5560, 126.9050],
+  { id: "e2", cat: "eat", f: "market", area: "hongdae", p: [37.5560, 126.9050],
     ko: ["망원시장", "", "동네 사람들이 장을 보러 오는 시장이에요. 닭강정, 호떡 같은 간식이 많아요.", "시장 안에서 간식을 사서 걸으며 먹는 게 로컬 방식이에요."],
     en: ["Mangwon Market", "", "A neighborhood market where locals do their grocery shopping. Lots of snacks like dakgangjeong (sweet crispy chicken) and hotteok.", "Buying snacks and eating while you walk the aisles is the local way."] },
-  { id: "e3", cat: "eat", area: "euljiro", p: [37.5665, 126.9910],
+  { id: "e3", cat: "eat", f: "drink", area: "euljiro", p: [37.5665, 126.9910],
     ko: ["을지로 노가리 골목", "", "말린 명태 안주(노가리)에 생맥주를 마시는 오래된 골목이에요. 퇴근한 직장인이 많이 와요.", "해가 진 뒤에 가야 분위기가 살아나요."],
     en: ["Euljiro Nogari Alley", "", "An old alley known for nogari (dried pollock) snacks with draft beer. Popular with office workers after work.", "It comes alive after sunset."] },
-  { id: "e4", cat: "eat", area: "jongno", p: [37.5700, 126.9995],
+  { id: "e4", cat: "eat", f: "market", area: "jongno", p: [37.5700, 126.9995],
     ko: ["광장시장", "", "빈대떡, 마약김밥, 육회 같은 먹거리가 모인 전통시장이에요.", "한 가게에서 다 먹지 말고 여러 곳에서 조금씩 나눠 먹는 게 일반적이에요."],
     en: ["Gwangjang Market", "", "A traditional market packed with food stalls: bindaetteok (mung bean pancakes), mayak kimbap, yukhoe (beef tartare) and more.", "People usually share small plates from several stalls instead of eating a full meal at one."] },
-  { id: "e5", cat: "eat", area: "jongno", p: [37.5805, 126.9695],
+  { id: "e5", cat: "eat", f: "market", area: "jongno", p: [37.5805, 126.9695],
     ko: ["통인시장 도시락카페", "", "서촌의 시장에서 엽전으로 반찬을 골라 도시락을 만드는 곳이에요.", "엽전은 도시락카페에서 먼저 바꿔요."],
     en: ["Tongin Market Dosirak Café", "", "In a Seochon market, you pick side dishes with old-style brass coins to build your own lunch box.", "Exchange for the coins at the dosirak café first."] },
-  { id: "e6", cat: "eat", area: "hangang", p: [37.5314, 127.0669],
+  { id: "e6", cat: "eat", f: "chicken", area: "hangang", p: [37.5314, 127.0669],
     ko: ["한강 치킨 피크닉", "", "치킨을 사서 한강공원 잔디밭에서 먹는 게 한국식 피크닉이에요.", "한국 번호가 없으면 배달 앱 가입이 어려워요. 근처 치킨집에서 포장하거나 편의점 음식으로 대신하세요."],
     en: ["Han River chicken picnic", "", "Fried chicken on the lawn of a Han River park is the classic Korean picnic.", "Delivery apps often need a Korean phone number, so pick up takeout from a nearby shop or use convenience-store food."] },
 
+  { id: "e7", cat: "eat", f: "snack", area: "dongdae", p: [37.5655, 127.0175],
+    ko: ["신당동 떡볶이타운", "", "즉석 떡볶이집이 모여 있는 골목이에요. 냄비에 떡, 라면사리, 만두를 넣고 테이블에서 끓여 먹어요.", "여러 명이 가서 사리를 추가하며 먹는 방식이 일반적이에요."],
+    en: ["Sindang-dong Tteokbokki Town", "", "An alley of tteokbokki restaurants where you cook rice cakes, ramen noodles and dumplings in a pot at your table.", "Go in a group and keep adding extra noodles to the pot."] },
+  { id: "e8", cat: "eat", f: "chicken", area: "dongdae", p: [37.57, 127.0075],
+    ko: ["동대문 닭한마리 골목", "", "닭 한 마리를 통째로 끓여 감자, 떡과 함께 먹는 전골이에요. 같은 메뉴를 하는 가게가 골목에 모여 있어요.", "마지막에 칼국수 사리를 넣어 먹는 게 마무리 순서예요."],
+    en: ["Dongdaemun Dak-hanmari Alley", "", "A hot pot of one whole chicken simmered with potatoes and rice cakes. Several restaurants serving the same dish line one alley.", "Finish by adding kalguksu noodles to the leftover broth."] },
+  { id: "e9", cat: "eat", f: "meat", area: "dongdae", p: [37.5655, 127.043],
+    ko: ["마장동 축산시장", "", "고기를 시장에서 사서 근처 식당에서 상차림비를 내고 구워 먹는 곳이에요.", "가게마다 상차림비와 최소 주문이 달라서 먼저 물어보세요."],
+    en: ["Majang-dong Meat Market", "", "A meat market where you buy beef or pork and grill it at a nearby restaurant for a table-setting fee.", "Table fees and minimums vary by shop, so ask first."] },
+  { id: "e10", cat: "eat", f: "meat", area: "mapo", p: [37.544, 126.951],
+    ko: ["공덕시장 족발골목", "", "삶은 돼지 족을 얇게 썰어 먹는 족발집이 모인 골목이에요. 퇴근 후 술안주로 많이 찾아요.", "보쌈이나 막국수를 같이 시키는 사람이 많아요."],
+    en: ["Gongdeok Market Jokbal Street", "", "A street of jokbal (braised pig's trotters) restaurants, a popular after-work drinking meal.", "Many people add bossam (boiled pork wraps) or buckwheat noodles."] },
+  { id: "e11", cat: "eat", f: "seafood", area: "noryang", p: [37.5133, 126.942],
+    ko: ["노량진수산시장", "", "시장에서 생선과 조개를 고르면 2층 식당에서 회나 매운탕으로 먹을 수 있는 수산시장이에요.", "고른 뒤 식당에 가져가면 상차림비를 받는 곳이 많아요. 가격은 흥정이 되기도 해요."],
+    en: ["Noryangjin Fish Market", "", "A seafood market where you pick fish or shellfish and have it served as sashimi or spicy stew at a restaurant upstairs.", "Restaurants usually charge a table fee, and prices can sometimes be negotiated."] },
+  { id: "e12", cat: "eat", f: "noodle", area: "jongno", p: [37.559, 126.977],
+    ko: ["남대문시장 칼국수 골목", "", "시장 안에서 칼국수와 보리밥을 파는 작은 가게가 모인 골목이에요.", "점심시간에는 합석하는 경우가 많아요."],
+    en: ["Namdaemun Market Kalguksu Alley", "", "A market alley of small shops selling hand-cut noodle soup (kalguksu) and barley rice.", "At lunchtime you may be seated at a shared table."] },
+  { id: "e13", cat: "eat", f: "seafood", area: "jongno", p: [37.568, 126.9795],
+    ko: ["무교동 낙지골목", "", "매운 볶음 낙지를 파는 가게가 모인 골목이에요. 직장인이 점심과 저녁에 많이 와요.", "매운 정도를 먼저 정할 수 있는지 물어보세요."],
+    en: ["Mugyo-dong Nakji Alley", "", "An alley of restaurants serving spicy stir-fried octopus, busy with office workers at lunch and dinner.", "Ask whether you can choose the spice level."] },
+  { id: "e14", cat: "eat", f: "soup", area: "jongno", p: [37.5714, 126.981],
+    ko: ["청진동 해장국 골목", "", "소뼈와 우거지를 넣고 끓인 해장국으로 알려진 옛 골목이에요.", "해장국은 원래 술 마신 다음 날 먹는 국이에요."],
+    en: ["Cheongjin-dong Haejangguk Alley", "", "An old alley known for haejangguk, a beef-bone and cabbage soup traditionally eaten to recover after drinking.", "Haejangguk literally means a 'hangover soup'."] },
+  { id: "e15", cat: "eat", f: "cafe", area: "jongno", p: [37.574, 126.9895],
+    ko: ["익선동 한옥거리", "", "작은 한옥을 고친 카페와 식당이 모인 골목이에요.", "주말 오후에는 좁은 골목이 붐벼서 오전이 편해요."],
+    en: ["Ikseon-dong Hanok Street", "", "A lane of cafés and restaurants in renovated small hanok houses.", "The narrow lanes get crowded on weekend afternoons, so mornings are easier."] },
+  { id: "e16", cat: "eat", f: "cafe", area: "hongdae", p: [37.562, 126.925],
+    ko: ["연남동 경의선숲길 카페거리", "", "공원 옆 골목에 개성 있는 카페와 작은 식당이 이어져 있어요.", "공원을 산책하다가 카페에 들르는 코스가 흔해요."],
+    en: ["Yeonnam-dong Café Strip", "", "Independent cafés and small restaurants along the park path and side streets.", "A common plan is a park stroll with a café stop."] },
+  { id: "e17", cat: "eat", f: "cafe", area: "seongsu", p: [37.5425, 127.056],
+    ko: ["성수 연무장길", "", "옛 공장 건물을 고친 카페, 편집숍, 팝업스토어가 이어지는 거리예요.", "가게마다 대기 줄이 달라서 한 곳에 오래 서지 말고 둘러보세요."],
+    en: ["Seongsu Yeonmujang-gil", "", "A street of cafés, concept shops and pop-ups in converted factory buildings.", "Wait times differ a lot by shop, so browse instead of queuing at one."] },
+  { id: "e18", cat: "eat", f: "meat", area: "seongsu", p: [37.5405, 127.069],
+    ko: ["건대 양꼬치 거리", "", "양꼬치와 칭다오 맥주를 파는 중식 양꼬치집이 모인 거리예요. 대학생이 많이 와요.", "꼬치를 쯔란 가루에 찍어 먹어요."],
+    en: ["Konkuk Univ. Lamb Skewer Street", "", "A street of Chinese-style lamb skewer restaurants, popular with university students.", "Dip the skewers in cumin (zira) powder."] },
   { id: "d1", cat: "do", area: "seongsu", p: [37.5444, 127.0374],
     ko: ["서울숲 산책", "", "성수동 옆에 있는 큰 공원이에요. 산책한 뒤 근처 카페 거리로 이어지는 코스가 흔해요.", "카페 거리까지 걸어서 이동할 수 있어요."],
     en: ["Seoul Forest walk", "", "A large park next to Seongsu. A common plan is a stroll here, then the café streets nearby.", "The café streets are within walking distance."] },
@@ -297,10 +354,11 @@ var QUERY = {
   e4: ["광장시장", "Gwangjang Market"], e5: ["통인시장", "Tongin Market"], e6: ["뚝섬한강공원", "Ttukseom Hangang Park"],
   d1: ["서울숲", "Seoul Forest"], d2: ["성수동 팝업스토어", "Seongsu-dong pop-up store"], d3: ["경의선숲길", "Gyeongui Line Forest Park"],
   d4: ["홍대 걷고싶은거리", "Hongdae Walking Street"], d5: ["을지로 힙지로", "Euljiro Hipjiro"], d6: ["청계천", "Cheonggyecheon"],
-  d7: ["여의도한강공원", "Yeouido Hangang Park"]
+  d7: ["여의도한강공원", "Yeouido Hangang Park"],
+  e7: ["신당동 떡볶이타운", "Sindang-dong Tteokbokki Town"], e8: ["동대문 닭한마리 골목", "Dongdaemun Dak Hanmari Alley"], e9: ["마장동 축산물시장", "Majang-dong Meat Market"], e10: ["공덕시장 족발골목", "Gongdeok Market Jokbal Street"], e11: ["노량진수산시장", "Noryangjin Fish Market"], e12: ["남대문시장 칼국수골목", "Namdaemun Market Kalguksu Alley"], e13: ["무교동 낙지골목", "Mugyo-dong Nakji Alley"], e14: ["청진동 해장국골목", "Cheongjin-dong Haejangguk Alley"], e15: ["익선동 한옥거리", "Ikseon-dong Hanok Street"], e16: ["연남동 경의선숲길", "Yeonnam-dong Gyeongui Line Forest Park"], e17: ["성수동 연무장길", "Seongsu Yeonmujang-gil"], e18: ["건대 양꼬치거리", "Konkuk University Lamb Skewer Street"]
 };
 
-var AREA_GQ = { seongsu: "Seongsu-dong, Seoul", hongdae: "Hongdae, Seoul", euljiro: "Euljiro, Seoul", jongno: "Jongno, Seoul", hangang: "Hangang Park, Seoul" };
+var AREA_GQ = { seongsu: "Seongsu-dong, Seoul", hongdae: "Hongdae, Seoul", euljiro: "Euljiro, Seoul", jongno: "Jongno, Seoul", hangang: "Hangang Park, Seoul", dongdae: "Dongdaemun, Seoul", mapo: "Gongdeok, Seoul", noryang: "Noryangjin, Seoul" };
 
 function linkRow(i, L) {
   var q = QUERY[i.id];
@@ -312,8 +370,62 @@ function linkRow(i, L) {
     "<a class=\"alt\" href=\"https://map.kakao.com/link/search/" + encodeURIComponent(q[0]) + "\" target=\"_blank\" rel=\"noopener\">" + esc(L.kakao) + "</a></div>";
 }
 
-var CAT_ORDER = ["eat", "do", "cvs", "oy", "saved"];
-var state = { lang: "ko", cat: "eat", area: "all", sel: null, saved: [] };
+
+var FOODS = [
+  { id: "all",     ko: "전체 음식", en: "All food" },
+  { id: "chicken", ko: "치킨·닭",   en: "Chicken" },
+  { id: "meat",    ko: "고기",      en: "Meat & BBQ" },
+  { id: "soup",    ko: "국밥·해장", en: "Soup" },
+  { id: "noodle",  ko: "면",        en: "Noodles" },
+  { id: "snack",   ko: "분식·간식", en: "Street snacks" },
+  { id: "seafood", ko: "해산물",    en: "Seafood" },
+  { id: "market",  ko: "시장",      en: "Markets" },
+  { id: "cafe",    ko: "카페·디저트", en: "Café & dessert" },
+  { id: "drink",   ko: "술집",      en: "Bars" }
+];
+
+/* Published data only. Every block carries a source and an as-of date. kind: "rank" = a real ranking, "list" = a curated list without order. */
+var RANKS = [
+  { id: "r1", kind: "rank",
+    ko: "외국인이 가장 좋아하는 한식 (선호도)", en: "Korean foods foreigners like most (preference)",
+    asof: "2025-11-22", n: "22개국 1만1천 명", nen: "11,000 people in 22 countries",
+    items: [["한국식 치킨","Korean-style fried chicken","14%"],["김치","Kimchi","9.5%"],["비빔밥","Bibimbap","8.2%"],["불고기","Bulgogi","5.6%"],["라면","Ramyeon","5.1%"],["삼겹살구이","Grilled pork belly","4.5%"],["김치볶음밥","Kimchi fried rice","4.4%"]],
+    src: "농림축산식품부·한식진흥원, 2025 해외 한식 소비자 조사", sen: "Ministry of Agriculture, Food and Rural Affairs & Korean Food Promotion Institute, 2025 Overseas Korean Food Consumer Survey",
+    url: "https://www.mafra.go.kr/bbs/home/792/575965/artclView.do" },
+  { id: "r2", kind: "rank",
+    ko: "최근 1년간 자주 먹은 한식", en: "Korean foods eaten most in the past year",
+    asof: "2025-11-22", n: "22개국 1만1천 명", nen: "11,000 people in 22 countries",
+    items: [["한국식 치킨","Korean-style fried chicken","28.3%"],["김치","Kimchi","28%"],["비빔밥","Bibimbap","19.9%"],["라면","Ramyeon","16.6%"],["불고기","Bulgogi","14.0%"],["만두","Dumplings","13.3%"],["김치볶음밥","Kimchi fried rice","12.5%"]],
+    src: "농림축산식품부·한식진흥원, 2025 해외 한식 소비자 조사 (위와 같은 조사)", sen: "Same 2025 survey as above",
+    url: "https://www.wikitree.co.kr/articles/1096858" },
+  { id: "r3", kind: "rank",
+    ko: "CU 외국인 매출 상위 (생수 제외)", en: "CU top sellers to foreigners (excl. water)",
+    asof: "2026-02-13 보도", n: "10개 중 7개만 보도됨", nen: "Only 7 of the top 10 were reported",
+    items: [["빙그레 바나나맛우유","Binggrae Banana Milk",""],["한손한끼 초코맛","Hansonhankki Choco",""],["빙그레 딸기맛우유","Binggrae Strawberry Milk",""],["피스마이너스원 하이볼","PEACEMINUSONE Highball",""],["빙그레 메로나맛우유","Binggrae Melona Milk",""],["빙그레 바나나우유 라이트","Binggrae Banana Milk Light",""],["마이픽 요거트 플레인 쿠키링","My Pick Yogurt Plain Cookie Ring",""]],
+    src: "파이낸셜뉴스, CU·GS25 매출 데이터 분석 기사", sen: "Financial News, analysis of CU and GS25 sales data",
+    url: "https://www.fnnews.com/news/202602130931160229" },
+  { id: "r4", kind: "rank",
+    ko: "GS25 외국인 매출 상위", en: "GS25 top sellers to foreigners",
+    asof: "2026-02-13 보도", n: "6개만 보도됨", nen: "Only 6 items were reported",
+    items: [["빙그레 바나나맛우유","Binggrae Banana Milk",""],["감동란","Gamdongran (flavored boiled egg)",""],["요즘의 그릭요거트(블루베리)","Greek yogurt (blueberry)",""],["동아 포카리스웨트","Pocari Sweat",""],["빙그레 딸기우유","Binggrae Strawberry Milk",""],["유어스 야쿠르트그랜드","Yours Yakult Grand",""]],
+    src: "파이낸셜뉴스 (위와 같은 기사)", sen: "Financial News (same article)",
+    url: "https://www.fnnews.com/news/202602130931160229" },
+  { id: "r5", kind: "rank",
+    ko: "CU 2024년 외국인 관광객 매출 1위", en: "CU's No. 1 seller to foreign tourists in 2024",
+    asof: "2025-01-09 보도", n: "택스리펀드 이용 고객 기준", nen: "Based on tax-refund customers",
+    items: [["두바이 초콜릿","Dubai chocolate",""]],
+    src: "비즈워치, BGF리테일 발표", sen: "BizWatch, citing BGF Retail",
+    url: "https://news.bizwatch.co.kr/article/consumer/2025/01/09/0010" },
+  { id: "r6", kind: "list",
+    ko: "2026 미쉐린 빕 구르망 서울 신규 5곳", en: "Michelin Bib Gourmand Seoul 2026: 5 new entries",
+    asof: "2026", n: "신규 선정만, 순서 없음", nen: "New entries only, no order",
+    items: [["고사리 익스프레스 신당 (신당동, 비건)","Gosari Express Sindang (Sindang-dong, vegan)",""],["3대 삼계장인 (반포, 삼계탕)","3dae Samgye Jangin (Banpo, samgyetang)",""],["소바키리 스즈 (소바)","Sobakiri Suzu (soba)",""],["안덕 (서촌, 이북식)","Andeok (Seochon, northern-style)",""],["오일제 (용산, 들깨미역국)","Oilje (Yongsan, perilla seaweed soup)",""]],
+    src: "위키트리 보도", sen: "WikiTree report",
+    url: "https://www.wikitree.co.kr/articles/1122865" }
+];
+
+var CAT_ORDER = ["eat", "do", "cvs", "oy", "rank", "saved"];
+var state = { lang: "ko", cat: "eat", area: "all", food: "all", sel: null, saved: [] };
 
 try {
   var sl = localStorage.getItem("lp-lang");
@@ -341,6 +453,7 @@ function visible() {
   if (state.cat === "saved") return DATA.filter(function (i) { return state.saved.indexOf(i.id) > -1; });
   return DATA.filter(function (i) {
     if (i.cat !== state.cat) return false;
+    if (state.cat === "eat" && state.food !== "all" && i.f !== state.food) return false;
     if (isGeo() && state.area !== "all") return i.area === state.area;
     return true;
   });
@@ -369,6 +482,7 @@ function mapHTML(items) {
   } else if (isGeo() && state.area === "all") {
     AREAS.slice(1).forEach(function (a) {
       var cnt = items.filter(function (i) { return i.area === a.id; }).length;
+      if (!cnt) return;
       var p = proj(VIEW[a.id].b[0], VIEW[a.id].b[1]);
       s += "<g class=\"bubble\" data-bubble=\"" + a.id + "\" tabindex=\"0\" role=\"button\" aria-label=\"" + esc(a[state.lang] + " " + cnt) + "\" transform=\"translate(" + n1(p[0]) + " " + n1(p[1]) + ")\">" +
         "<circle class=\"dot\" r=\"15\" style=\"fill:" + catColor(state.cat) + ";stroke-width:2\"/>" +
@@ -414,11 +528,22 @@ function render() {
   var chips = document.getElementById("chips");
   chips.hidden = !isGeo();
   if (isGeo()) {
-    chips.innerHTML = AREAS.map(function (a) {
+    chips.innerHTML = AREAS.filter(function (a) {
+      return a.id === "all" || a.id === state.area || DATA.some(function (i) { return i.cat === state.cat && i.area === a.id && (state.cat !== "eat" || state.food === "all" || i.f === state.food); });
+    }).map(function (a) {
       return "<button type=\"button\" class=\"chip\" data-area=\"" + a.id + "\" aria-pressed=\"" + (state.area === a.id) + "\">" + esc(a[state.lang]) + "</button>";
     }).join("");
   }
 
+  var foods = document.getElementById("foods");
+  foods.hidden = state.cat !== "eat";
+  if (state.cat === "eat") {
+    foods.innerHTML = FOODS.map(function (f) {
+      return "<button type=\"button\" class=\"chip\" data-food=\"" + f.id + "\" aria-pressed=\"" + (state.food === f.id) + "\">" + esc(f[state.lang]) + "</button>";
+    }).join("");
+  }
+
+  if (state.cat === "rank") { renderRanks(L); return; }
   var items = visible();
   var showMap = isGeo() || state.cat === "oy";
   document.getElementById("mapwrap").hidden = !showMap;
@@ -453,6 +578,29 @@ function render() {
   }).join("");
 }
 
+function renderRanks(L) {
+  document.getElementById("mapwrap").hidden = true;
+  var note = document.getElementById("note");
+  note.style.setProperty("--cc", catColor("rank"));
+  note.textContent = L.notes.rank;
+  var ko = state.lang === "ko";
+  var html = RANKS.map(function (r) {
+    var rows = r.items.map(function (it, idx) {
+      return "<li>" + (r.kind === "rank" ? "<span class=\"r\">" + (idx + 1) + "</span>" : "<span class=\"r\">·</span>") + "<span>" + esc(it[ko ? 0 : 1]) + "</span>" + (it[2] ? "<span class=\"v\">" + esc(it[2]) + "</span>" : "") + "</li>";
+    }).join("");
+    return "<article class=\"card\" style=\"--cc:" + catColor("rank") + "\">" +
+      "<div class=\"card-top\"><div class=\"lead\"><span class=\"tag\">" + esc(L.asof + " " + r.asof) + "</span><span class=\"kind\">" + esc(r.kind === "rank" ? L.kRank : L.kList) + "</span></div></div>" +
+      "<h3>" + esc(ko ? r.ko : r.en) + "</h3>" +
+      "<p class=\"desc\">" + esc(ko ? r.n : r.nen) + "</p><ol class=\"rk\" style=\"list-style:none\">" + rows + "</ol>" +
+      "<p class=\"src\">" + esc(L.src) + ": <a href=\"" + r.url + "\" target=\"_blank\" rel=\"noopener\">" + esc(ko ? r.src : r.sen) + "</a></p></article>";
+  }).join("");
+  var oy = ko ? "올리브영: 공식 순위 자료를 찾지 못해서 비워뒀어요. 올리브영 앱의 랭킹 메뉴에서 실시간 순위를 볼 수 있어요." : "Olive Young: I could not find an official ranking, so none is shown. The Olive Young app has a live ranking menu.";
+  html += "<article class=\"card\" style=\"--cc:" + catColor("oy") + "\"><h3>" + esc(L.cats.oy) + "</h3><p class=\"desc\">" + esc(oy) + "</p></article>";
+  var ct = ko ? "캐치테이블의 지역별 맛집 랭킹은 앱·웹에서 실시간으로 확인할 수 있어요. 데이터를 가져오지 않고 링크로만 연결해요." : "CatchTable shows live restaurant rankings by area in its app and site. This page only links to it and does not copy the data.";
+  html += "<article class=\"card\" style=\"--cc:" + catColor("rank") + "\"><h3>CatchTable</h3><p class=\"desc\">" + esc(ct) + "</p><div class=\"openrow\"><a class=\"gbtn\" href=\"https://www.catchtable.net/ranking/location/location-all\" target=\"_blank\" rel=\"noopener\">" + (ko ? "캐치테이블 랭킹 열기" : "Open CatchTable rankings") + "</a></div></article>";
+  document.getElementById("list").innerHTML = html;
+}
+
 function scrollToEl(id, block) {
   var el = document.getElementById(id);
   if (el && el.scrollIntoView) { try { el.scrollIntoView({ behavior: "smooth", block: block }); } catch (e) { el.scrollIntoView(); } }
@@ -482,6 +630,7 @@ document.addEventListener("click", function (e) {
   if (b.id === "lang-ko") { setLang("ko"); return; }
   if (b.id === "lang-en") { setLang("en"); return; }
   if (b.dataset.cat) { state.cat = b.dataset.cat; state.sel = null; render(); return; }
+  if (b.dataset.food) { state.food = b.dataset.food; state.area = "all"; state.sel = null; render(); return; }
   if (b.dataset.area) { state.area = b.dataset.area; state.sel = null; render(); return; }
   if (b.dataset.loc) { selectItem(b.dataset.loc, "card"); return; }
   if (b.dataset.id) {
