@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>서울 로컬픽</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Layout: one column. Schematic Seoul map on top, numbered pins match the numbered cards below. */
+  --bg:#EFF1F3; --card:#FFFFFF; --ink:#101828; --muted:#566074; --line:#D5DAE1; --on:#FFFFFF;
+  --land:#E3E7EB; --water:#B7D3EA; --waterink:#4F7BA3;
+  --c-eat:#D83A2E; --c-do:#1F6FD6; --c-cvs:#138A4B; --c-oy:#9A6412; --c-saved:#101828;
+  --f-display:'Black Han Sans','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  --f-body:'IBM Plex Sans KR','Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E131B; --card:#171E29; --ink:#F1F4F8; --muted:#A3AEC0; --line:#2A3443; --on:#0E131B;
+    --land:#1B2431; --water:#27496B; --waterink:#8FB6DA;
+    --c-eat:#FF7467; --c-do:#6BA6FF; --c-cvs:#43CF86; --c-oy:#E8B04A; --c-saved:#F1F4F8;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E131B; --card:#171E29; --ink:#F1F4F8; --muted:#A3AEC0; --line:#2A3443; --on:#0E131B;
+  --land:#1B2431; --water:#27496B; --waterink:#8FB6DA;
+  --c-eat:#FF7467; --c-do:#6BA6FF; --c-cvs:#43CF86; --c-oy:#E8B04A; --c-saved:#F1F4F8;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%;overflow-x:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,.pin:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.wrap{max-width:640px;margin:0 auto;padding:0 16px 48px}
+
+.top{display:flex;align-items:center;justify-content:space-between;padding:16px 0 4px;gap:8px}
+.brand{font-family:var(--f-display);font-size:20px;white-space:nowrap}
+.brand small{font-family:var(--f-body);font-weight:600;font-size:11px;letter-spacing:.14em;color:var(--muted);margin-left:8px}
+.lang{display:flex;border:1.5px solid var(--ink);border-radius:999px;overflow:hidden;flex:0 0 auto}
+.lang button{border:0;background:transparent;padding:4px 12px;font-size:13px;font-weight:600;min-height:32px}
+.lang button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+.hero{padding:16px 0 4px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,9vw,48px);line-height:1.12;margin:0 0 8px;text-wrap:balance}
+.sub{margin:0;color:var(--muted);max-width:46ch}
+
+.cats{display:flex;flex-wrap:wrap;gap:8px;padding:16px 0 0}
+.cat{display:flex;align-items:center;gap:7px;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:5px 13px 5px 5px;font-weight:600;font-size:15px;min-height:42px}
+.cat .num{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--cc);color:var(--on);font-family:var(--f-display);font-size:15px}
+.cat[aria-pressed="true"]{border-color:var(--cc);box-shadow:inset 0 0 0 1.5px var(--cc)}
+.cat .cnt{font-size:12px;color:var(--muted);font-weight:500}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:5px 13px;font-size:14px;font-weight:600;min-height:36px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+.mapwrap{margin-top:14px}
+.mapbox{aspect-ratio:3/2;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:var(--land)}
+.mapbox svg{display:block;width:100%;height:100%}
+.m-land{fill:var(--land)}
+.m-river{fill:none;stroke:var(--water);stroke-width:15;stroke-linecap:round;stroke-linejoin:round}
+.m-stream{fill:none;stroke:var(--water);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.m-label{fill:var(--waterink);font-family:var(--f-body);font-weight:600;letter-spacing:.2em}
+.pin{cursor:pointer}
+.pin .dot,.bubble .dot,.info .dot{stroke:var(--card)}
+.pin .ring{fill:none;stroke:var(--ink)}
+.pnum,.bnum{fill:var(--on);font-family:var(--f-body);font-weight:600}
+.blabel,.ilabel{fill:var(--ink);font-family:var(--f-body);font-weight:600;paint-order:stroke;stroke:var(--land);stroke-linejoin:round}
+.bubble{cursor:pointer}
+.cap{margin:6px 2px 0;font-size:12px;color:var(--muted)}
+
+.note{margin:12px 0 0;padding:10px 14px;border-left:4px solid var(--cc);background:var(--card);font-size:14px;color:var(--muted);border-radius:0 8px 8px 0}
+
+.list{display:grid;gap:12px;margin-top:14px}
+.card{background:var(--card);border-radius:14px;padding:14px 16px 14px 20px;position:relative;border:1px solid var(--line)}
+.card::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:5px;border-radius:0 4px 4px 0;background:var(--cc)}
+.card.sel{border-color:var(--ink);box-shadow:0 0 0 2px var(--ink)}
+.card-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.lead{display:flex;align-items:center;gap:8px;min-width:0}
+.n{flex:0 0 auto;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--cc);color:var(--on);font-size:13px;font-weight:600}
+.tag{font-size:12px;font-weight:600;color:var(--cc)}
+.acts{display:flex;align-items:center;margin:-8px -10px -8px 0}
+.loc{border:0;background:transparent;color:var(--muted);font-size:13px;font-weight:600;min-height:44px;padding:0 8px;text-decoration:underline;text-underline-offset:3px}
+.save{border:0;background:transparent;width:44px;height:44px;display:grid;place-items:center;color:var(--muted)}
+.save svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2}
+.save[aria-pressed="true"]{color:var(--c-eat)}
+.save[aria-pressed="true"] svg{fill:currentColor}
+h3{margin:2px 0 6px;font-size:18px;line-height:1.3;font-weight:600}
+.desc{margin:0 0 10px}
+.tip{margin:0;font-size:14px;color:var(--muted);padding-top:10px;border-top:1px dashed var(--line)}
+.tip b{color:var(--ink);font-weight:600;margin-right:6px}
+.empty{padding:28px 8px;color:var(--muted);text-align:center}
+.foot{margin-top:28px;font-size:13px;color:var(--muted)}
+.kpin{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--cc);color:var(--on);font:600 13px var(--f-body);border:2px solid var(--card);box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer}
+.kpin.sel{width:34px;height:34px;box-shadow:0 0 0 3px var(--ink)}
+.kbub{position:relative;min-width:34px;height:34px;padding:0 6px;border-radius:17px;display:grid;place-items:center;background:var(--cc);color:var(--on);font:600 14px var(--f-body);border:2px solid var(--card);box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer}
+.kinfo{position:relative;width:16px;height:16px;border-radius:50%;background:var(--cc);border:2px solid var(--card);box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.kbub small,.kinfo small{position:absolute;top:36px;left:50%;transform:translateX(-50%);white-space:nowrap;color:#101828;font:600 11px var(--f-body);text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff}
+.kinfo small{top:18px}
+.links{display:flex;flex-wrap:wrap;gap:4px 14px;margin:10px 0 0;font-size:13px}
+.links a{color:var(--muted);font-weight:600;text-underline-offset:3px;min-height:28px;display:inline-flex;align-items:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">로컬픽<small>LOCAL PICK</small></div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" id="lang-ko" aria-pressed="true">한국어</button>
+      <button type="button" id="lang-en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1 id="h1"></h1>
+    <p class="sub" id="sub"></p>
+  </section>
+
+  <nav class="cats" id="cats" aria-label="Category"></nav>
+  <div class="chips" id="chips" aria-label="Neighborhood"></div>
+
+  <section class="mapwrap" id="mapwrap">
+    <div class="mapbox" id="mapbox"></div>
+    <p class="cap" id="cap"></p>
+  </section>
+
+  <div class="note" id="note"></div>
+  <main class="list" id="list"></main>
+  <p class="foot" id="foot"></p>
+</div>
+
+<script>
+var UI = {
+  ko: {
+    h1: "한국인이 진짜 가는 곳",
+    sub: "서울의 맛집, 할 것, 편의점과 올리브영 추천을 지도에서 찾아보세요.",
+    cats: { eat: "맛집", do: "할 것", cvs: "편의점", oy: "올리브영", saved: "저장" },
+    notes: {
+      eat: "지도의 번호와 아래 카드의 번호가 같아요. 동네 원을 누르면 확대돼요.",
+      do: "지도의 번호와 아래 카드의 번호가 같아요. 동네 원을 누르면 확대돼요.",
+      cvs: "순위가 아니라 한국인이 자주 사는 조합을 고른 목록이에요. 편의점은 서울 어디에나 있어서 지도 없이 보여드려요. 매장마다 판매 여부가 달라요.",
+      oy: "순위가 아니라 꾸준히 사랑받는 제품을 고른 목록이에요. 지도의 점은 큰 매장이 모여 있는 동네예요. 여권이 있으면 바로 면세를 받을 수 있는 매장이 많으니 조건은 매장에서 확인하세요. 실시간 순위는 올리브영 앱의 랭킹 메뉴에서 볼 수 있어요.",
+      saved: "하트를 눌러 저장한 곳이에요."
+    },
+    memo: "로컬 메모", empty: "아직 저장한 곳이 없어요. 카드의 하트를 눌러 보세요.",
+    save: "저장", unsave: "저장 취소", showmap: "지도에서 보기",
+    cap: "개략도예요. 축척과 위치는 정확하지 않아요.", mapLabel: "서울 개략 지도",
+    river: "한강", naver: "네이버지도", google: "구글맵", kakao: "카카오맵",
+    foot: "샘플 큐레이션이에요. 영업 시간, 가격, 판매 여부는 방문 전에 확인하세요."
+  },
+  en: {
+    h1: "Where Koreans actually go",
+    sub: "Find Seoul eats, things to do, and convenience-store and Olive Young picks on the map.",
+    cats: { eat: "Eat", do: "Do", cvs: "Convenience", oy: "Olive Young", saved: "Saved" },
+    notes: {
+      eat: "Pin numbers match the card numbers below. Tap a neighborhood circle to zoom in.",
+      do: "Pin numbers match the card numbers below. Tap a neighborhood circle to zoom in.",
+      cvs: "Not a ranking. These are combinations Koreans buy often. Convenience stores are everywhere in Seoul, so there is no map. Stock varies by store.",
+      oy: "Not a ranking. These are long-time favorites. Dots on the map show neighborhoods with big stores. Many stores give an instant tax refund if you show your passport; check the conditions in store. Live rankings are in the Olive Young app's ranking menu.",
+      saved: "Places you saved with the heart."
+    },
+    memo: "Local note", empty: "Nothing saved yet. Tap the heart on a card.",
+    save: "Save", unsave: "Remove from saved", showmap: "Show on map",
+    cap: "Schematic map. Not to scale, and positions are approximate.", mapLabel: "Schematic map of Seoul",
+    river: "Han River", naver: "Naver Map", google: "Google Maps", kakao: "Kakao Map",
+    foot: "Sample curation. Check opening hours, prices and availability before you go."
+  }
+};
+
+var AREAS = [
+  { id: "all",     ko: "전체",   en: "All",       kl: "서울 전체",         el: "All Seoul" },
+  { id: "seongsu", ko: "성수",   en: "Seongsu",   kl: "성수",             el: "Seongsu" },
+  { id: "hongdae", ko: "홍대",   en: "Hongdae",   kl: "홍대·연남·망원",    el: "Hongdae, Yeonnam, Mangwon" },
+  { id: "euljiro", ko: "을지로", en: "Euljiro",   kl: "을지로",           el: "Euljiro" },
+  { id: "jongno",  ko: "종로",   en: "Jongno",    kl: "종로·서촌",         el: "Jongno, Seochon" },
+  { id: "hangang", ko: "한강",   en: "Han River", kl: "한강공원",          el: "Han River Park" }
+];
+
+/* Map view per neighborhood: center [lat, lng], zoom, and where its bubble sits on the overview. */
+var VIEW = {
+  all:     { c: [37.5395, 126.9900], z: 1 },
+  seongsu: { c: [37.5410, 127.0500], z: 3.2, b: [37.5440, 127.0500] },
+  hongdae: { c: [37.5555, 126.9170], z: 4,   b: [37.5560, 126.9170] },
+  euljiro: { c: [37.5665, 126.9920], z: 6,   b: [37.5665, 126.9925] },
+  jongno:  { c: [37.5745, 126.9840], z: 3.2, b: [37.5780, 126.9760] },
+  hangang: { c: [37.5290, 127.0000], z: 1.3, b: [37.5240, 126.9800] }
+};
+
+var RIVER = [[37.5625,126.8850],[37.5535,126.8977],[37.5445,126.9016],[37.5415,126.9140],[37.5395,126.9360],[37.5385,126.9450],[37.5300,126.9500],[37.5175,126.9590],[37.5122,126.9808],[37.5130,126.9960],[37.5250,127.0130],[37.5300,127.0230],[37.5338,127.0365],[37.5300,127.0500],[37.5270,127.0640],[37.5225,127.0780],[37.5170,127.0950]];
+var STREAM = [[37.5690,126.9780],[37.5688,127.0000],[37.5695,127.0250]];
+var OY_SPOTS = [
+  { ko: "명동", en: "Myeongdong", p: [37.5636, 126.9856] },
+  { ko: "홍대", en: "Hongdae",    p: [37.5565, 126.9230] },
+  { ko: "성수", en: "Seongsu",    p: [37.5445, 127.0555] }
+];
+
+/* ko/en: [name, kind, description, local note]; p: [lat, lng] */
+var DATA = [
+  { id: "e1", cat: "eat", area: "seongsu", p: [37.5445, 127.0560],
+    ko: ["어니언 성수", "", "옛 공장 건물을 고친 베이커리 카페예요. 빵 종류가 많고 주말 오후에는 줄이 길어요.", "평일 오전에 가면 덜 붐벼요."],
+    en: ["Onion Seongsu", "", "A bakery café in a converted factory building. Big pastry selection, and long lines on weekend afternoons.", "Go on a weekday morning to skip the crowd."] },
+  { id: "e2", cat: "eat", area: "hongdae", p: [37.5560, 126.9050],
+    ko: ["망원시장", "", "동네 사람들이 장을 보러 오는 시장이에요. 닭강정, 호떡 같은 간식이 많아요.", "시장 안에서 간식을 사서 걸으며 먹는 게 로컬 방식이에요."],
+    en: ["Mangwon Market", "", "A neighborhood market where locals do their grocery shopping. Lots of snacks like dakgangjeong (sweet crispy chicken) and hotteok.", "Buying snacks and eating while you walk the aisles is the local way."] },
+  { id: "e3", cat: "eat", area: "euljiro", p: [37.5665, 126.9910],
+    ko: ["을지로 노가리 골목", "", "말린 명태 안주(노가리)에 생맥주를 마시는 오래된 골목이에요. 퇴근한 직장인이 많이 와요.", "해가 진 뒤에 가야 분위기가 살아나요."],
+    en: ["Euljiro Nogari Alley", "", "An old alley known for nogari (dried pollock) snacks with draft beer. Popular with office workers after work.", "It comes alive after sunset."] },
+  { id: "e4", cat: "eat", area: "jongno", p: [37.5700, 126.9995],
+    ko: ["광장시장", "", "빈대떡, 마약김밥, 육회 같은 먹거리가 모인 전통시장이에요.", "한 가게에서 다 먹지 말고 여러 곳에서 조금씩 나눠 먹는 게 일반적이에요."],
+    en: ["Gwangjang Market", "", "A traditional market packed with food stalls: bindaetteok (mung bean pancakes), mayak kimbap, yukhoe (beef tartare) and more.", "People usually share small plates from several stalls instead of eating a full meal at one."] },
+  { id: "e5", cat: "eat", area: "jongno", p: [37.5805, 126.9695],
+    ko: ["통인시장 도시락카페", "", "서촌의 시장에서 엽전으로 반찬을 골라 도시락을 만드는 곳이에요.", "엽전은 도시락카페에서 먼저 바꿔요."],
+    en: ["Tongin Market Dosirak Café", "", "In a Seochon market, you pick side dishes with old-style brass coins to build your own lunch box.", "Exchange for the coins at the dosirak café first."] },
+  { id: "e6", cat: "eat", area: "hangang", p: [37.5314, 127.0669],
+    ko: ["한강 치킨 피크닉", "", "치킨을 사서 한강공원 잔디밭에서 먹는 게 한국식 피크닉이에요.", "한국 번호가 없으면 배달 앱 가입이 어려워요. 근처 치킨집에서 포장하거나 편의점 음식으로 대신하세요."],
+    en: ["Han River chicken picnic", "", "Fried chicken on the lawn of a Han River park is the classic Korean picnic.", "Delivery apps often need a Korean phone number, so pick up takeout from a nearby shop or use convenience-store food."] },
+
+  { id: "d1", cat: "do", area: "seongsu", p: [37.5444, 127.0374],
+    ko: ["서울숲 산책", "", "성수동 옆에 있는 큰 공원이에요. 산책한 뒤 근처 카페 거리로 이어지는 코스가 흔해요.", "카페 거리까지 걸어서 이동할 수 있어요."],
+    en: ["Seoul Forest walk", "", "A large park next to Seongsu. A common plan is a stroll here, then the café streets nearby.", "The café streets are within walking distance."] },
+  { id: "d2", cat: "do", area: "seongsu", p: [37.5452, 127.0612],
+    ko: ["성수 팝업스토어 구경", "", "성수동에는 브랜드 팝업스토어가 자주 열려요. 매번 다른 공간을 볼 수 있어요.", "가기 전에 인스타그램에서 일정과 예약 여부를 확인하세요."],
+    en: ["Seongsu pop-up stores", "", "Brands open pop-up stores in Seongsu all the time, so there is usually something new to see.", "Check Instagram for dates and whether you need a reservation."] },
+  { id: "d3", cat: "do", area: "hongdae", p: [37.5600, 126.9250],
+    ko: ["경의선숲길 산책", "", "옛 철길을 공원으로 만든 길이에요. 연남동 구간에는 카페와 작은 식당이 이어져요.", "연남동 구간에서 시작하면 걷기 좋아요."],
+    en: ["Gyeongui Line Forest Park", "", "A former rail line turned into a park path. The Yeonnam stretch is lined with cafés and small restaurants.", "Start at the Yeonnam section for the best stroll."] },
+  { id: "d4", cat: "do", area: "hongdae", p: [37.5535, 126.9235],
+    ko: ["홍대 걷고싶은거리 버스킹", "", "거리 공연이 열리는 홍대의 대표 거리예요.", "공연은 저녁 시간대에 많아요."],
+    en: ["Hongdae busking street", "", "Hongdae's main pedestrian street, known for street performances.", "Most performances are in the evening."] },
+  { id: "d5", cat: "do", area: "euljiro", p: [37.5660, 126.9940],
+    ko: ["을지로 골목 탐방", "", "인쇄소와 철물점 사이에 숨은 카페와 바가 있어요. 간판이 작아서 지도 앱으로 찾아가야 해요.", "낮에는 공장 소리가 나고 저녁에는 가게들이 열려요."],
+    en: ["Euljiro alley wander", "", "Cafés and bars hide between print shops and hardware stores. Signs are small, so use a map app.", "Daytime is workshops, evening is when the bars open."] },
+  { id: "d6", cat: "do", area: "jongno", p: [37.5690, 126.9780],
+    ko: ["청계천 밤 산책", "", "도심을 가로지르는 하천 산책로예요. 밤에는 조명이 켜져요.", "광장시장에서 먹고 걸어서 이어 가기 좋아요."],
+    en: ["Cheonggyecheon night walk", "", "A stream-side path running through the city center, lit up at night.", "Easy to combine with dinner at Gwangjang Market."] },
+  { id: "d7", cat: "do", area: "hangang", p: [37.5265, 126.9340],
+    ko: ["한강 편의점 라면", "", "한강공원 편의점에는 라면을 끓여 주는 기계가 있어요. 라면을 들고 강가에서 먹는 게 한국식이에요.", "사람이 많은 저녁에는 줄이 길 수 있어요."],
+    en: ["Han River convenience-store ramen", "", "Convenience stores in Han River parks have ramen cooking machines. Eating a cup by the water is a very Korean thing to do.", "Lines can get long in the evening."] },
+
+  { id: "c1", cat: "cvs", area: "",
+    ko: ["불닭볶음면", "라면", "아주 매운 볶음면이에요. 외국인에게도 유명하지만 한국인도 자주 사요.", "너무 맵다면 우유나 치즈를 곁들여 먹어요."],
+    en: ["Buldak fire noodles", "Ramen", "Very spicy stir-fried noodles. Famous with visitors, and Koreans buy them often too.", "If it is too hot, add milk or cheese."] },
+  { id: "c2", cat: "cvs", area: "",
+    ko: ["참치마요 삼각김밥", "간편식", "가장 기본적인 편의점 한 끼예요. 포장에 뜯는 순서가 숫자로 적혀 있어요.", "매장 전자레인지에 데워 먹어요."],
+    en: ["Tuna-mayo triangle kimbap", "Quick meal", "The most basic convenience-store meal. The wrapper has numbers showing the order to peel it.", "Heat it in the store microwave."] },
+  { id: "c3", cat: "cvs", area: "",
+    ko: ["바나나맛우유", "음료", "단지 모양 병에 든 바나나맛 우유예요.", "목욕탕에서 마시는 우유로 유명해요."],
+    en: ["Banana-flavored milk", "Drink", "Banana milk in a squat jar-shaped bottle.", "Famous as the drink to have after a bathhouse."] },
+  { id: "c4", cat: "cvs", area: "",
+    ko: ["꼬북칩", "과자", "네 겹으로 접힌 바삭한 과자예요. 맛이 여러 가지예요.", "맛이 자주 바뀌니 새로 나온 맛을 골라 보세요."],
+    en: ["Kkobuk Chip", "Snack", "A crunchy four-layer folded corn snack that comes in many flavors.", "Flavors change often, so try the newest one."] },
+  { id: "c5", cat: "cvs", area: "",
+    ko: ["메로나", "아이스크림", "멜론 맛 아이스바예요. 해외에서도 유명해요.", "한여름이 아니어도 많이 먹어요."],
+    en: ["Melona", "Ice cream", "A melon-flavored ice bar that is well known overseas.", "Koreans eat it well outside of summer too."] },
+  { id: "c6", cat: "cvs", area: "",
+    ko: ["컵얼음 + 아이스 아메리카노", "커피", "편의점에서 컵얼음을 사서 커피를 부어 마셔요.", "‘얼죽아’는 ‘얼어 죽어도 아이스 아메리카노’를 줄인 말이에요."],
+    en: ["Cup ice + iced americano", "Coffee", "Buy a cup of ice and pour in the store's coffee.", "“Eoljuk-a” is short for “iced americano even if I freeze to death.”"] },
+  { id: "c7", cat: "cvs", area: "",
+    ko: ["곰표 밀맥주", "주류", "밀가루 브랜드 곰표와 협업해서 나온 밀맥주예요. 주로 CU에서 팔아요.", "구매할 때 신분증이 필요할 수 있어요. 판매처는 시기마다 달라요."],
+    en: ["Gompyo wheat beer", "Alcohol", "A wheat beer made in collaboration with the Gompyo flour brand, mostly sold at CU.", "You may need ID to buy it, and where it is sold can change."] },
+  { id: "c8", cat: "cvs", area: "",
+    ko: ["연세우유 크림빵", "빵", "연세우유와 협업한 크림빵이에요. 주로 CU에서 팔아요.", "인기가 많아서 저녁에는 없을 수 있어요."],
+    en: ["Yonsei Milk cream bread", "Bakery", "A cream-filled bread made with Yonsei Milk, mostly sold at CU.", "It can sell out by evening."] },
+
+  { id: "o1", cat: "oy", area: "",
+    ko: ["라운드랩 1025 독도 토너", "토너", "해양심층수가 들어간 수분 토너예요.", "큰 용량과 작은 용량이 있으니 여행이면 작은 걸 고르세요."],
+    en: ["Round Lab 1025 Dokdo Toner", "Toner", "A hydrating toner made with deep sea water.", "It comes in large and small sizes. Pick the small one for a trip."] },
+  { id: "o2", cat: "oy", area: "",
+    ko: ["메디힐 마스크팩", "마스크팩", "마스크팩으로 가장 유명한 브랜드 중 하나예요. 종류가 많아서 한 장씩 골라 살 수 있어요.", "여러 종류를 한 장씩 사서 비교해 보세요."],
+    en: ["Mediheal sheet masks", "Sheet mask", "One of the best-known sheet mask brands. Many types, and you can buy single sheets.", "Buy a few single sheets of different types and compare."] },
+  { id: "o3", cat: "oy", area: "",
+    ko: ["토리든 다이브인 세럼", "세럼", "히알루론산이 들어간 수분 세럼이에요.", "끈적임이 적은 편이라 여름에도 쓰기 좋아요."],
+    en: ["Torriden Dive-In Serum", "Serum", "A hydrating serum with hyaluronic acid.", "It feels light, so it works in summer too."] },
+  { id: "o4", cat: "oy", area: "",
+    ko: ["롬앤 쥬시 래스팅 틴트", "립", "촉촉한 광택이 나는 립틴트예요. 색이 많아요.", "매장에 있는 테스터로 발라 보고 고르세요."],
+    en: ["rom&nd Juicy Lasting Tint", "Lip", "A glossy lip tint that comes in lots of shades.", "Try the in-store testers before you choose."] },
+  { id: "o5", cat: "oy", area: "",
+    ko: ["마녀공장 퓨어 클렌징 오일", "클렌징", "메이크업과 선크림을 지우는 클렌징 오일이에요.", "마른 얼굴에 바르고 물로 유화해서 씻어내요."],
+    en: ["Manyo Pure Cleansing Oil", "Cleanser", "A cleansing oil that removes makeup and sunscreen.", "Apply to a dry face, add water to emulsify, then rinse."] },
+  { id: "o6", cat: "oy", area: "",
+    ko: ["클리오 킬커버 쿠션", "베이스", "커버력이 높은 쿠션 파운데이션이에요.", "호수(색)가 여러 개라서 매장에서 확인하고 사세요."],
+    en: ["Clio Kill Cover cushion", "Base makeup", "A cushion foundation with strong coverage.", "It comes in several shades, so check yours in store."] },
+  { id: "o7", cat: "oy", area: "",
+    ko: ["라운드랩 자작나무 수분 선크림", "선케어", "촉촉하게 발리는 선크림이에요.", "여름 여행 전에 사 두는 사람이 많아요."],
+    en: ["Round Lab Birch Juice Moisturizing Sunscreen", "Sun care", "A moisturizing sunscreen with a light, hydrating feel.", "Popular to pick up before a summer trip."] },
+  { id: "o8", cat: "oy", area: "",
+    ko: ["아누아 어성초 77 토너", "토너", "피부를 진정시키는 용도로 알려진 토너예요.", "화장솜에 묻혀 닦아내듯 쓰는 사람도 많아요."],
+    en: ["Anua Heartleaf 77 Soothing Toner", "Toner", "A toner known for calming the skin.", "Many people also use it on a cotton pad."] }
+];
+
+/* Search keywords for the "open in map app" links: [Korean, English]. Search is used instead of coordinates so a wrong pin cannot send anyone to the wrong spot. */
+var QUERY = {
+  e1: ["어니언 성수", "Onion Seongsu"], e2: ["망원시장", "Mangwon Market"], e3: ["을지로 노가리골목", "Euljiro Nogari Alley"],
+  e4: ["광장시장", "Gwangjang Market"], e5: ["통인시장", "Tongin Market"], e6: ["뚝섬한강공원", "Ttukseom Hangang Park"],
+  d1: ["서울숲", "Seoul Forest"], d2: ["성수동 팝업스토어", "Seongsu-dong pop-up store"], d3: ["경의선숲길", "Gyeongui Line Forest Park"],
+  d4: ["홍대 걷고싶은거리", "Hongdae Walking Street"], d5: ["을지로 힙지로", "Euljiro Hipjiro"], d6: ["청계천", "Cheonggyecheon"],
+  d7: ["여의도한강공원", "Yeouido Hangang Park"]
+};
+
+function linkRow(i, L) {
+  var q = QUERY[i.id];
+  if (!q) return "";
+  function a(href, label) { return "<a href=\"" + href + "\" target=\"_blank\" rel=\"noopener\">" + esc(label) + "</a>"; }
+  return "<p class=\"links\">" +
+    a("https://map.naver.com/p/search/" + encodeURIComponent(q[0]), L.naver) +
+    a("https://www.google.com/maps/search/?api=1&amp;query=" + encodeURIComponent(q[1]), L.google) +
+    a("https://map.kakao.com/link/search/" + encodeURIComponent(q[0]), L.kakao) + "</p>";
+}
+
+/* Paste your Kakao JavaScript key between the quotes. Without a key, or if Kakao refuses the page's address, the page falls back to the drawn map. */
+var KAKAO_KEY = "a6b85ba2f9e4ac4b04964e02dae95d61";
+var realMap = false, kmap = null, koverlays = [];
+
+function loadKakao(done) {
+  if (!KAKAO_KEY || KAKAO_KEY === "YOUR_KEY") { done(false); return; }
+  var s = document.createElement("script");
+  s.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=" + encodeURIComponent(KAKAO_KEY) + "&autoload=false";
+  s.onload = function () {
+    try { kakao.maps.load(function () { done(true); }); } catch (e) { done(false); }
+  };
+  s.onerror = function () { done(false); };
+  document.head.appendChild(s);
+}
+
+function kEl(cls, html, cc) {
+  var d = document.createElement("div");
+  d.className = cls;
+  d.innerHTML = html;
+  d.style.setProperty("--cc", cc);
+  return d;
+}
+function kPut(pt, el) {
+  var o = new kakao.maps.CustomOverlay({ position: new kakao.maps.LatLng(pt[0], pt[1]), content: el, xAnchor: 0.5, yAnchor: 0.5, clickable: true, zIndex: 1 });
+  o.setMap(kmap);
+  koverlays.push(o);
+}
+
+function renderKakao(items) {
+  var box = document.getElementById("mapbox");
+  if (!kmap) {
+    box.innerHTML = "<div id=\"kmap\" style=\"width:100%;height:100%\"></div>";
+    kmap = new kakao.maps.Map(document.getElementById("kmap"), { center: new kakao.maps.LatLng(37.55, 126.99), level: 8 });
+  }
+  kmap.relayout();
+  koverlays.forEach(function (o) { o.setMap(null); });
+  koverlays = [];
+  var pts = [];
+
+  if (state.cat === "oy") {
+    OY_SPOTS.forEach(function (o) {
+      pts.push(o.p);
+      kPut(o.p, kEl("kinfo", "<small>" + esc(o[state.lang]) + "</small>", catColor("oy")));
+    });
+  } else if (state.area === "all") {
+    AREAS.slice(1).forEach(function (a) {
+      var inArea = items.filter(function (i) { return i.area === a.id; });
+      if (!inArea.length) return;
+      var lat = 0, lng = 0;
+      inArea.forEach(function (i) { lat += i.p[0]; lng += i.p[1]; });
+      var pt = [lat / inArea.length, lng / inArea.length];
+      pts.push(pt);
+      var el = kEl("kbub", inArea.length + "<small>" + esc(a[state.lang]) + "</small>", catColor(state.cat));
+      el.addEventListener("click", function () { state.area = a.id; state.sel = null; render(); });
+      kPut(pt, el);
+    });
+  } else {
+    items.forEach(function (i, idx) {
+      pts.push(i.p);
+      var el = kEl("kpin" + (i.id === state.sel ? " sel" : ""), String(idx + 1), catColor(i.cat));
+      el.setAttribute("role", "button");
+      el.setAttribute("aria-label", (idx + 1) + ". " + i[state.lang][0]);
+      el.addEventListener("click", function () { selectItem(i.id, "pin"); });
+      kPut(i.p, el);
+    });
+  }
+
+  if (pts.length) {
+    var bounds = new kakao.maps.LatLngBounds();
+    pts.forEach(function (p) {
+      bounds.extend(new kakao.maps.LatLng(p[0], p[1]));
+      bounds.extend(new kakao.maps.LatLng(p[0] + 0.004, p[1] + 0.004));
+      bounds.extend(new kakao.maps.LatLng(p[0] - 0.004, p[1] - 0.004));
+    });
+    kmap.setBounds(bounds, 30, 30, 30, 30);
+  }
+}
+
+var CAT_ORDER = ["eat", "do", "cvs", "oy", "saved"];
+var state = { lang: "ko", cat: "eat", area: "all", sel: null, saved: [] };
+
+try {
+  var sl = localStorage.getItem("lp-lang");
+  if (sl === "ko" || sl === "en") state.lang = sl;
+  var ss = JSON.parse(localStorage.getItem("lp-saved") || "[]");
+  if (Array.isArray(ss)) state.saved = ss;
+} catch (e) {}
+
+function persist() {
+  try {
+    localStorage.setItem("lp-lang", state.lang);
+    localStorage.setItem("lp-saved", JSON.stringify(state.saved));
+  } catch (e) {}
+}
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function areaOf(id) { return AREAS.filter(function (a) { return a.id === id; })[0]; }
+function catColor(c) { return "var(--c-" + c + ")"; }
+function isGeo() { return state.cat === "eat" || state.cat === "do"; }
+
+/* 1 degree of longitude is about 88 km and 1 degree of latitude about 111 km here, so the map keeps true proportions. */
+function proj(lat, lng) { return [(lng - 126.885) * 1714.3, (37.595 - lat) * 2162]; }
+function n1(v) { return Math.round(v * 100) / 100; }
+
+function visible() {
+  if (state.cat === "saved") return DATA.filter(function (i) { return state.saved.indexOf(i.id) > -1; });
+  return DATA.filter(function (i) {
+    if (i.cat !== state.cat) return false;
+    if (isGeo() && state.area !== "all") return i.area === state.area;
+    return true;
+  });
+}
+
+function mapHTML(items) {
+  var L = UI[state.lang];
+  var vw = (isGeo() && VIEW[state.area]) ? VIEW[state.area] : VIEW.all;
+  var z = vw.z, k = 1 / z, c = proj(vw.c[0], vw.c[1]), w = 360 / z, h = 240 / z;
+  var s = "<svg viewBox=\"" + n1(c[0] - w / 2) + " " + n1(c[1] - h / 2) + " " + n1(w) + " " + n1(h) + "\" role=\"img\" aria-label=\"" + esc(L.mapLabel) + "\">";
+  s += "<rect class=\"m-land\" x=\"-300\" y=\"-300\" width=\"960\" height=\"840\"/>";
+  s += "<polyline class=\"m-river\" points=\"" + RIVER.map(function (q) { var p = proj(q[0], q[1]); return n1(p[0]) + "," + n1(p[1]); }).join(" ") + "\"/>";
+  s += "<polyline class=\"m-stream\" points=\"" + STREAM.map(function (q) { var p = proj(q[0], q[1]); return n1(p[0]) + "," + n1(p[1]); }).join(" ") + "\"/>";
+  [[37.5395, 126.9290], [37.5290, 127.0560], [37.5130, 126.9890]].forEach(function (q) {
+    var p = proj(q[0], q[1]);
+    s += "<text class=\"m-label\" x=\"" + n1(p[0]) + "\" y=\"" + n1(p[1] + 3) + "\" text-anchor=\"middle\" style=\"font-size:8px\">" + esc(L.river) + "</text>";
+  });
+
+  if (state.cat === "oy") {
+    OY_SPOTS.forEach(function (o) {
+      var p = proj(o.p[0], o.p[1]);
+      s += "<g class=\"info\" transform=\"translate(" + n1(p[0]) + " " + n1(p[1]) + ")\">" +
+        "<circle class=\"dot\" r=\"" + n1(8 * k) + "\" style=\"fill:var(--c-oy);stroke-width:" + n1(2 * k) + "\"/>" +
+        "<text class=\"ilabel\" x=\"" + n1(12 * k) + "\" y=\"" + n1(4 * k) + "\" style=\"font-size:" + n1(12 * k) + "px;stroke-width:" + n1(3 * k) + "px\">" + esc(o[state.lang]) + "</text></g>";
+    });
+  } else if (isGeo() && state.area === "all") {
+    AREAS.slice(1).forEach(function (a) {
+      var cnt = items.filter(function (i) { return i.area === a.id; }).length;
+      var p = proj(VIEW[a.id].b[0], VIEW[a.id].b[1]);
+      s += "<g class=\"bubble\" data-bubble=\"" + a.id + "\" tabindex=\"0\" role=\"button\" aria-label=\"" + esc(a[state.lang] + " " + cnt) + "\" transform=\"translate(" + n1(p[0]) + " " + n1(p[1]) + ")\">" +
+        "<circle class=\"dot\" r=\"15\" style=\"fill:" + catColor(state.cat) + ";stroke-width:2\"/>" +
+        "<text class=\"bnum\" y=\"5\" text-anchor=\"middle\" style=\"font-size:14px\">" + cnt + "</text>" +
+        "<text class=\"blabel\" y=\"29\" text-anchor=\"middle\" style=\"font-size:11px;stroke-width:3px\">" + esc(a[state.lang]) + "</text></g>";
+    });
+  } else if (isGeo()) {
+    var order = items.map(function (i, idx) { return { i: i, n: idx + 1 }; });
+    order.sort(function (a, b) { return (a.i.id === state.sel) - (b.i.id === state.sel); });
+    order.forEach(function (o) {
+      var p = proj(o.i.p[0], o.i.p[1]), sel = o.i.id === state.sel, r = (sel ? 15 : 12) * k;
+      s += "<g class=\"pin\" data-pin=\"" + o.i.id + "\" tabindex=\"0\" role=\"button\" aria-label=\"" + esc(o.n + ". " + o.i[state.lang][0]) + "\" transform=\"translate(" + n1(p[0]) + " " + n1(p[1]) + ")\">" +
+        (sel ? "<circle class=\"ring\" r=\"" + n1(r + 4 * k) + "\" style=\"stroke-width:" + n1(2.5 * k) + "\"/>" : "") +
+        "<circle class=\"dot\" r=\"" + n1(r) + "\" style=\"fill:" + catColor(o.i.cat) + ";stroke-width:" + n1(2 * k) + "\"/>" +
+        "<text class=\"pnum\" y=\"" + n1(4.5 * k) + "\" text-anchor=\"middle\" style=\"font-size:" + n1(13 * k) + "px\">" + o.n + "</text></g>";
+    });
+  }
+  return s + "</svg>";
+}
+
+function render() {
+  var L = UI[state.lang];
+  document.documentElement.lang = state.lang;
+  document.title = state.lang === "ko" ? "서울 로컬픽" : "Seoul Local Pick";
+  document.getElementById("h1").textContent = L.h1;
+  document.getElementById("sub").textContent = L.sub;
+  document.getElementById("foot").textContent = L.foot;
+  document.getElementById("cap").textContent = realMap ? "" : L.cap;
+  document.getElementById("lang-ko").setAttribute("aria-pressed", state.lang === "ko");
+  document.getElementById("lang-en").setAttribute("aria-pressed", state.lang === "en");
+
+  document.getElementById("cats").innerHTML = CAT_ORDER.map(function (c, idx) {
+    var badge = c === "saved" ? "♥" : String(idx + 1);
+    var cnt = c === "saved" ? " <span class=\"cnt\">" + state.saved.length + "</span>" : "";
+    return "<button type=\"button\" class=\"cat\" data-cat=\"" + c + "\" style=\"--cc:" + catColor(c) + "\" aria-pressed=\"" + (state.cat === c) + "\">" +
+      "<span class=\"num\">" + badge + "</span>" + esc(L.cats[c]) + cnt + "</button>";
+  }).join("");
+
+  var chips = document.getElementById("chips");
+  chips.hidden = !isGeo();
+  if (isGeo()) {
+    chips.innerHTML = AREAS.map(function (a) {
+      return "<button type=\"button\" class=\"chip\" data-area=\"" + a.id + "\" aria-pressed=\"" + (state.area === a.id) + "\">" + esc(a[state.lang]) + "</button>";
+    }).join("");
+  }
+
+  var items = visible();
+  var showMap = isGeo() || state.cat === "oy";
+  document.getElementById("mapwrap").hidden = !showMap;
+  if (showMap) {
+    if (realMap) {
+      try { renderKakao(items); }
+      catch (e) { realMap = false; kmap = null; document.getElementById("mapbox").innerHTML = mapHTML(items); }
+    } else {
+      document.getElementById("mapbox").innerHTML = mapHTML(items);
+    }
+  }
+
+  var note = document.getElementById("note");
+  note.style.setProperty("--cc", catColor(state.cat));
+  note.textContent = L.notes[state.cat];
+
+  var list = document.getElementById("list");
+  if (!items.length) {
+    list.innerHTML = "<p class=\"empty\">" + esc(L.empty) + "</p>";
+    return;
+  }
+  list.innerHTML = items.map(function (i, idx) {
+    var t = i[state.lang];
+    var isSaved = state.saved.indexOf(i.id) > -1;
+    var geo = i.cat === "eat" || i.cat === "do";
+    var tag = geo ? areaOf(i.area)[state.lang === "ko" ? "kl" : "el"] : t[1];
+    var num = (geo && state.cat !== "saved") ? "<span class=\"n\">" + (idx + 1) + "</span>" : "";
+    var loc = (geo && state.cat !== "saved") ? "<button type=\"button\" class=\"loc\" data-loc=\"" + i.id + "\">" + esc(L.showmap) + "</button>" : "";
+    var links = geo ? linkRow(i, L) : "";
+    return "<article class=\"card" + (i.id === state.sel ? " sel" : "") + "\" id=\"card-" + i.id + "\" style=\"--cc:" + catColor(i.cat) + "\">" +
+      "<div class=\"card-top\"><div class=\"lead\">" + num + "<span class=\"tag\">" + esc(tag) + "</span></div>" +
+      "<div class=\"acts\">" + loc +
+      "<button type=\"button\" class=\"save\" data-id=\"" + i.id + "\" aria-pressed=\"" + isSaved + "\" aria-label=\"" + esc(isSaved ? L.unsave : L.save) + "\">" +
+      "<svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M12 21s-7.5-4.6-9.6-9.2C1 8.6 2.9 5 6.3 5c2 0 3.6 1.1 4.4 2.6.3.5.3.5.6 0C12.1 6.1 13.7 5 15.7 5c3.4 0 5.3 3.6 3.9 6.8C19.5 16.4 12 21 12 21z\" stroke-linejoin=\"round\"/></svg></button></div></div>" +
+      "<h3>" + esc(t[0]) + "</h3>" +
+      "<p class=\"desc\">" + esc(t[2]) + "</p>" +
+      "<p class=\"tip\"><b>" + esc(L.memo) + "</b>" + esc(t[3]) + "</p>" + links +
+      "</article>";
+  }).join("");
+}
+
+function scrollToEl(id, block) {
+  var el = document.getElementById(id);
+  if (el && el.scrollIntoView) { try { el.scrollIntoView({ behavior: "smooth", block: block }); } catch (e) { el.scrollIntoView(); } }
+}
+function selectItem(id, from) {
+  var item = DATA.filter(function (i) { return i.id === id; })[0];
+  if (!item) return;
+  state.sel = id;
+  render();
+  if (from === "pin") scrollToEl("card-" + id, "center");
+  else scrollToEl("mapbox", "start");
+}
+
+document.addEventListener("click", function (e) {
+  var pn = e.target.closest("[data-pin]");
+  if (pn) { selectItem(pn.getAttribute("data-pin"), "pin"); return; }
+  var bb = e.target.closest("[data-bubble]");
+  if (bb) { state.area = bb.getAttribute("data-bubble"); state.sel = null; render(); return; }
+  var b = e.target.closest("button");
+  if (!b) return;
+  if (b.id === "lang-ko") { state.lang = "ko"; persist(); render(); return; }
+  if (b.id === "lang-en") { state.lang = "en"; persist(); render(); return; }
+  if (b.dataset.cat) { state.cat = b.dataset.cat; state.sel = null; render(); return; }
+  if (b.dataset.area) { state.area = b.dataset.area; state.sel = null; render(); return; }
+  if (b.dataset.loc) { selectItem(b.dataset.loc, "card"); return; }
+  if (b.dataset.id) {
+    var k = state.saved.indexOf(b.dataset.id);
+    if (k > -1) state.saved.splice(k, 1); else state.saved.push(b.dataset.id);
+    persist(); render();
+  }
+});
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  var t = e.target.closest ? e.target.closest("[data-pin],[data-bubble]") : null;
+  if (t) { e.preventDefault(); t.dispatchEvent(new MouseEvent("click", { bubbles: true })); }
+});
+
+render();
+loadKakao(function (ok) { if (ok) { realMap = true; render(); } });
+</script>
+</body>
+</html>
