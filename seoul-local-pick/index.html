@@ -394,6 +394,84 @@ function renderKakao(items) {
   }
 }
 
+/* Google Maps. Paste your Google Maps JavaScript API key between the quotes. With no key the page uses the Kakao map below, and with neither it falls back to the drawn map. */
+var GOOGLE_KEY = "YOUR_KEY";
+var provider = null, gmap = null, gmarkers = [], gLibs = null;
+
+function loadGoogle(done) {
+  if (!GOOGLE_KEY || GOOGLE_KEY === "YOUR_KEY") { done(false); return; }
+  window.__gmInit = function () {
+    Promise.all([google.maps.importLibrary("maps"), google.maps.importLibrary("marker")])
+      .then(function (libs) { gLibs = { maps: libs[0], marker: libs[1] }; done(true); })
+      .catch(function () { done(false); });
+  };
+  /* Google calls this when the key or the page address is rejected. */
+  window.gm_authFailure = function () { realMap = false; gmap = null; render(); };
+  var s = document.createElement("script");
+  s.async = true;
+  s.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(GOOGLE_KEY) + "&loading=async&language=" + state.lang + "&region=KR&callback=__gmInit";
+  s.onerror = function () { done(false); };
+  document.head.appendChild(s);
+}
+
+function gPut(pt, el) {
+  el.style.transform = "translateY(50%)";
+  gmarkers.push(new gLibs.marker.AdvancedMarkerElement({ map: gmap, position: { lat: pt[0], lng: pt[1] }, content: el, gmpClickable: true }));
+}
+
+function renderGoogle(items) {
+  var box = document.getElementById("mapbox");
+  if (!gmap) {
+    box.innerHTML = "<div id=\"gmap\" style=\"width:100%;height:100%\"></div>";
+    gmap = new gLibs.maps.Map(document.getElementById("gmap"), {
+      center: { lat: 37.55, lng: 126.99 }, zoom: 11, mapId: "DEMO_MAP_ID",
+      clickableIcons: false, fullscreenControl: false, streetViewControl: false, mapTypeControl: false
+    });
+  }
+  google.maps.event.trigger(gmap, "resize");
+  gmarkers.forEach(function (m) { m.map = null; });
+  gmarkers = [];
+  var pts = [];
+
+  if (state.cat === "oy") {
+    OY_SPOTS.forEach(function (o) {
+      pts.push(o.p);
+      gPut(o.p, kEl("kinfo", "<small>" + esc(o[state.lang]) + "</small>", catColor("oy")));
+    });
+  } else if (state.area === "all") {
+    AREAS.slice(1).forEach(function (a) {
+      var inArea = items.filter(function (i) { return i.area === a.id; });
+      if (!inArea.length) return;
+      var lat = 0, lng = 0;
+      inArea.forEach(function (i) { lat += i.p[0]; lng += i.p[1]; });
+      var pt = [lat / inArea.length, lng / inArea.length];
+      pts.push(pt);
+      var el = kEl("kbub", inArea.length + "<small>" + esc(a[state.lang]) + "</small>", catColor(state.cat));
+      el.addEventListener("click", function () { state.area = a.id; state.sel = null; render(); });
+      gPut(pt, el);
+    });
+  } else {
+    items.forEach(function (i, idx) {
+      pts.push(i.p);
+      var tag = (state.lang === "en" && QUERY[i.id]) ? "<small>" + esc(QUERY[i.id][1]) + "</small>" : "";
+      var el = kEl("kpin" + (i.id === state.sel ? " sel" : ""), String(idx + 1) + tag, catColor(i.cat));
+      el.setAttribute("role", "button");
+      el.setAttribute("aria-label", (idx + 1) + ". " + i[state.lang][0]);
+      el.addEventListener("click", function () { selectItem(i.id, "pin"); });
+      gPut(i.p, el);
+    });
+  }
+
+  if (pts.length) {
+    var bounds = new google.maps.LatLngBounds();
+    pts.forEach(function (p) {
+      bounds.extend({ lat: p[0] + 0.004, lng: p[1] + 0.004 });
+      bounds.extend({ lat: p[0] - 0.004, lng: p[1] - 0.004 });
+    });
+    gmap.fitBounds(bounds, 30);
+  }
+}
+
 var CAT_ORDER = ["eat", "do", "cvs", "oy", "saved"];
 var state = { lang: "ko", cat: "eat", area: "all", sel: null, saved: [] };
 
@@ -403,6 +481,9 @@ try {
   var ss = JSON.parse(localStorage.getItem("lp-saved") || "[]");
   if (Array.isArray(ss)) state.saved = ss;
 } catch (e) {}
+
+var hashLang = (location.hash || "").replace("#", "");
+if (hashLang === "en" || hashLang === "ko") state.lang = hashLang;
 
 function persist() {
   try {
@@ -502,8 +583,8 @@ function render() {
   document.getElementById("mapwrap").hidden = !showMap;
   if (showMap) {
     if (realMap) {
-      try { renderKakao(items); }
-      catch (e) { realMap = false; kmap = null; document.getElementById("mapbox").innerHTML = mapHTML(items); }
+      try { if (provider === "google") renderGoogle(items); else renderKakao(items); }
+      catch (e) { realMap = false; kmap = null; gmap = null; document.getElementById("mapbox").innerHTML = mapHTML(items); }
     } else {
       document.getElementById("mapbox").innerHTML = mapHTML(items);
     }
@@ -551,6 +632,14 @@ function selectItem(id, from) {
   else scrollToEl("mapbox", "start");
 }
 
+/* Google fixes the map language when it loads, so switching language reloads the page when Google is the map. */
+function setLang(l) {
+  state.lang = l;
+  persist();
+  if (realMap && provider === "google") { location.hash = l; location.reload(); return; }
+  render();
+}
+
 document.addEventListener("click", function (e) {
   var pn = e.target.closest("[data-pin]");
   if (pn) { selectItem(pn.getAttribute("data-pin"), "pin"); return; }
@@ -558,8 +647,8 @@ document.addEventListener("click", function (e) {
   if (bb) { state.area = bb.getAttribute("data-bubble"); state.sel = null; render(); return; }
   var b = e.target.closest("button");
   if (!b) return;
-  if (b.id === "lang-ko") { state.lang = "ko"; persist(); render(); return; }
-  if (b.id === "lang-en") { state.lang = "en"; persist(); render(); return; }
+  if (b.id === "lang-ko") { setLang("ko"); return; }
+  if (b.id === "lang-en") { setLang("en"); return; }
   if (b.dataset.cat) { state.cat = b.dataset.cat; state.sel = null; render(); return; }
   if (b.dataset.area) { state.area = b.dataset.area; state.sel = null; render(); return; }
   if (b.dataset.loc) { selectItem(b.dataset.loc, "card"); return; }
@@ -576,7 +665,10 @@ document.addEventListener("keydown", function (e) {
 });
 
 render();
-loadKakao(function (ok) { if (ok) { realMap = true; render(); } });
+loadGoogle(function (ok) {
+  if (ok) { provider = "google"; realMap = true; render(); return; }
+  loadKakao(function (ok2) { if (ok2) { provider = "kakao"; realMap = true; render(); } });
+});
 </script>
 </body>
 </html>
