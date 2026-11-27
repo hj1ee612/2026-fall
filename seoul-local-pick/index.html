@@ -155,7 +155,7 @@ var UI = {
     notes: {
       eat: "지도의 번호와 아래 카드의 번호가 같아요. 동네 원을 누르면 확대돼요.",
       do: "지도의 번호와 아래 카드의 번호가 같아요. 동네 원을 누르면 확대돼요.",
-      shop: "대표적인 쇼핑 거리와 시장이에요. 순위가 아니라 직접 고른 목록이고, 가게 정보는 네이버지도 링크에서 확인할 수 있어요.",
+      shop: "한국 사람들이 실제로 구경하러 가는 백화점, 쇼룸 거리, 시장이에요. 순위가 아니라 직접 고른 목록이고, 가게 정보는 지도 링크에서 확인하세요.",
       cvs: "순위가 아니라 한국인이 자주 사는 조합을 고른 목록이에요. 편의점은 서울 어디에나 있어서 지도 없이 보여드려요. 매장마다 판매 여부가 달라요.",
       oy: "순위가 아니라 꾸준히 사랑받는 제품을 고른 목록이에요. 지도의 점은 큰 매장이 모여 있는 동네예요. 여권이 있으면 바로 면세를 받을 수 있는 매장이 많으니 조건은 매장에서 확인하세요. 실시간 순위는 올리브영 앱의 랭킹 메뉴에서 볼 수 있어요.",
       rank: "출처와 기준일이 있는 자료만 모았어요. 실시간 순위가 아니라 발표된 시점의 결과예요.",
@@ -175,7 +175,7 @@ var UI = {
     notes: {
       eat: "Pin numbers match the card numbers below. Tap a neighborhood circle to zoom in.",
       do: "Pin numbers match the card numbers below. Tap a neighborhood circle to zoom in.",
-      shop: "Well-known shopping streets and markets. A hand-picked list, not a ranking. Use the Naver Map link for shop details.",
+      shop: "Department stores, showroom streets and markets where Koreans actually browse. A hand-picked list, not a ranking. Use the map links for shop details.",
       cvs: "Not a ranking. These are combinations Koreans buy often. Convenience stores are everywhere in Seoul, so there is no map. Stock varies by store.",
       oy: "Not a ranking. These are long-time favorites. Dots on the map show neighborhoods with big stores. Many stores give an instant tax refund if you show your passport; check the conditions in store. Live rankings are in the Olive Young app's ranking menu.",
       rank: "Only published data with a source and date. These are snapshots, not live rankings.",
@@ -198,7 +198,10 @@ var AREAS = [
   { id: "hangang", ko: "한강",   en: "Han River", kl: "한강공원",          el: "Han River Park" },
   { id: "dongdae", ko: "동대문·신당", en: "Dongdaemun", kl: "동대문·신당·마장", el: "Dongdaemun, Sindang, Majang" },
   { id: "mapo",    ko: "공덕",   en: "Gongdeok",  kl: "공덕·마포",         el: "Gongdeok, Mapo" },
-  { id: "noryang", ko: "노량진", en: "Noryangjin", kl: "노량진",          el: "Noryangjin" }
+  { id: "noryang", ko: "노량진", en: "Noryangjin", kl: "노량진",          el: "Noryangjin" },
+  { id: "yeouido", ko: "여의도", en: "Yeouido",   kl: "여의도",           el: "Yeouido" },
+  { id: "itaewon", ko: "이태원·한남", en: "Itaewon", kl: "이태원·한남",    el: "Itaewon, Hannam" },
+  { id: "gangnam", ko: "강남",   en: "Gangnam",   kl: "강남·신사·압구정", el: "Gangnam, Sinsa, Apgujeong" }
 ];
 
 /* Map view per neighborhood: center [lat, lng], zoom, and where its bubble sits on the overview. */
@@ -211,7 +214,10 @@ var VIEW = {
   hangang: { c: [37.5290, 127.0000], z: 1.3, b: [37.5240, 126.9800] },
   dongdae: { c: [37.5650, 127.0200], z: 3.6, b: [37.5650, 127.0150] },
   mapo:    { c: [37.5440, 126.9520], z: 6,   b: [37.5440, 126.9520] },
-  noryang: { c: [37.5133, 126.9420], z: 6,   b: [37.5133, 126.9420] }
+  noryang: { c: [37.5133, 126.9420], z: 6,   b: [37.5133, 126.9420] },
+  yeouido: { c: [37.5260, 126.9250], z: 6,   b: [37.5260, 126.9250] },
+  itaewon: { c: [37.5370, 126.9990], z: 5,   b: [37.5345, 126.9990] },
+  gangnam: { c: [37.5150, 127.0350], z: 2.5, b: [37.5150, 127.0350] }
 };
 
 var RIVER = [[37.5625,126.8850],[37.5535,126.8977],[37.5445,126.9016],[37.5415,126.9140],[37.5395,126.9360],[37.5385,126.9450],[37.5300,126.9500],[37.5175,126.9590],[37.5122,126.9808],[37.5130,126.9960],[37.5250,127.0130],[37.5300,127.0230],[37.5338,127.0365],[37.5300,127.0500],[37.5270,127.0640],[37.5225,127.0780],[37.5170,127.0950]];
@@ -288,15 +294,48 @@ var DATA = [
   { id: "s2", cat: "shop", area: "jongno", p: [37.5593, 126.9774],
     ko: ["남대문시장", "", "옷, 주방용품, 먹거리를 파는 서울의 큰 전통시장이에요.", "흥정이 되는 가게도 있어요. 예의 있게 물어보세요."],
     en: ["Namdaemun Market", "", "One of Seoul's big traditional markets, selling clothes, kitchenware and food.", "Some shops allow bargaining; ask politely."] },
-  { id: "s3", cat: "shop", area: "jongno", p: [37.5742, 126.9857],
-    ko: ["인사동 거리", "", "전통 공예품, 찻집, 기념품 가게가 이어지는 거리예요.", "기념품은 가게마다 가격 차이가 커서 두세 곳을 비교해 보세요."],
-    en: ["Insadong Street", "", "A street of traditional crafts, tea houses and souvenir shops.", "Souvenir prices differ by shop, so compare two or three."] },
-  { id: "s4", cat: "shop", area: "jongno", p: [37.5636, 126.9856],
-    ko: ["명동 쇼핑거리", "", "화장품과 옷 가게, 길거리 음식이 모인 대표 관광 쇼핑가예요.", "화장품은 가게마다 증정품이 달라요. 외국인 대상 면세 조건은 매장에서 확인하세요."],
-    en: ["Myeongdong Shopping Street", "", "A major tourist shopping district of cosmetics, clothes and street food.", "Free gifts differ by store. Ask in store about tax-refund conditions."] },
   { id: "s5", cat: "shop", area: "hongdae", p: [37.5565, 126.9235],
     ko: ["홍대 상점가", "", "패션, 문구, 소품 가게와 거리 공연이 이어지는 젊은 동네예요.", "저녁에 가면 거리 공연도 볼 수 있어요."],
     en: ["Hongdae Shopping Streets", "", "Fashion, stationery and small-goods shops in a youthful neighborhood with street performances.", "Go in the evening to catch street performances."] },
+  { id: "s6", cat: "shop", area: "yeouido", p: [37.5259, 126.9285],
+    ko: ["더현대 서울", "", "여의도에 있는 대형 백화점이에요. 실내 정원이 있고 팝업스토어가 자주 열려서 한국 사람들도 구경하러 많이 가요.", "주말에는 붐벼서 평일 낮이 편해요."],
+    en: ["The Hyundai Seoul", "", "A large department store in Yeouido with an indoor garden and frequent pop-up stores, popular with Koreans too.", "Weekends are crowded, so weekday daytime is easier."] },
+  { id: "s7", cat: "shop", area: "itaewon", p: [37.534, 127.003],
+    ko: ["한남동 쇼룸 거리", "", "패션, 가구, 향수 브랜드의 쇼룸과 편집숍이 모인 동네예요. 카페와 식당도 많아요.", "가게가 골목마다 흩어져 있어서 걸으며 둘러보는 코스가 좋아요."],
+    en: ["Hannam-dong Showroom Streets", "", "A neighborhood of brand showrooms and select shops for fashion, furniture and fragrance, with plenty of cafés.", "Shops are scattered across the lanes, so it works best as a walking route."] },
+  { id: "s8", cat: "shop", area: "seongsu", p: [37.544, 127.056],
+    ko: ["성수 브랜드 쇼룸·편집숍", "", "패션, 뷰티, 라이프스타일 브랜드가 쇼룸과 팝업을 여는 동네예요.", "팝업은 기간이 짧아서 가기 전에 인스타그램에서 일정을 확인하세요."],
+    en: ["Seongsu Brand Showrooms", "", "Fashion, beauty and lifestyle brands run showrooms and pop-ups here.", "Pop-ups are short-lived, so check their Instagram before you go."] },
+  { id: "s9", cat: "shop", area: "gangnam", p: [37.527, 127.039],
+    ko: ["압구정 로데오·청담", "", "패션 브랜드 매장과 편집숍, 디저트 카페가 이어지는 동네예요.", "저녁에 식사와 쇼핑을 함께 하는 사람이 많아요."],
+    en: ["Apgujeong Rodeo & Cheongdam", "", "Fashion stores, select shops and dessert cafés run through this area.", "Many people combine dinner and shopping in the evening."] },
+  { id: "s10", cat: "shop", area: "gangnam", p: [37.512, 127.059],
+    ko: ["스타필드 코엑스몰", "", "쇼핑, 식당, 영화관, 서점이 한곳에 모인 대형 실내 쇼핑몰이에요.", "비 오는 날 데이트와 약속 장소로 많이 써요."],
+    en: ["Starfield COEX Mall", "", "A big indoor mall with shops, restaurants, a cinema and a bookstore under one roof.", "A common meeting spot and date location on rainy days."] },
+  { id: "s11", cat: "shop", area: "dongdae", p: [37.572, 127.016],
+    ko: ["동묘 구제시장", "", "중고 옷과 잡화를 싸게 파는 구제시장이에요. 젊은 사람들이 많이 찾아요.", "가격이 낮은 대신 반품이 어려운 곳이 많아요."],
+    en: ["Dongmyo Vintage Market", "", "A vintage market selling secondhand clothes and goods cheaply, popular with young Koreans.", "Prices are low, but returns are often not possible."] },
+  { id: "s12", cat: "shop", area: "gangnam", p: [37.5205, 127.023],
+    ko: ["가로수길·신사", "", "패션 매장, 소품 가게, 카페가 이어진 거리예요.", "골목 안쪽에 개성 있는 가게가 많아요."],
+    en: ["Garosu-gil & Sinsa", "", "A street of fashion stores, small-goods shops and cafés.", "The side lanes hide the more distinctive shops."] },
+  { id: "d9", cat: "do", area: "itaewon", p: [37.5345, 126.994],
+    ko: ["이태원 클럽거리", "", "클럽과 바가 모인 대표적인 밤 놀이 거리예요.", "만 19세 이상만 입장할 수 있고 신분증을 확인해요. 외국인은 여권이 필요해요."],
+    en: ["Itaewon Club Street", "", "A well-known nightlife street of clubs and bars.", "Entry is 19+ in Korea and IDs are checked. Visitors need their passport."] },
+  { id: "d10", cat: "do", area: "hongdae", p: [37.556, 126.923],
+    ko: ["홍대 클럽·바 거리", "", "홍대 앞 클럽과 바가 모인 밤 놀이 거리예요. 대학생이 많이 와요.", "만 19세 이상만 입장할 수 있고 신분증을 확인해요."],
+    en: ["Hongdae Clubs & Bars", "", "Clubs and bars around Hongdae Station, popular with university students.", "Entry is 19+ and IDs are checked."] },
+  { id: "d11", cat: "do", area: "hongdae", p: [37.555, 126.922],
+    ko: ["방탈출 카페", "", "팀으로 방에서 문제를 풀어 탈출하는 게임이에요. 친구끼리 많이 가요.", "대부분 예약제라서 시간대를 미리 잡아야 해요. 영어로 가능한 곳은 가게마다 달라요."],
+    en: ["Escape Rooms", "", "Teams solve puzzles to escape a room. A common outing with friends.", "Most need a booking, and English support varies by venue."] },
+  { id: "d12", cat: "do", area: "hongdae", p: [37.5575, 126.9245],
+    ko: ["PC방", "", "게임을 하는 사람이 많이 가는 24시간 가게예요. 라면 같은 음식도 주문할 수 있어요.", "가게마다 시간당 요금이 다르고 선불로 결제해요."],
+    en: ["PC Bang (gaming café)", "", "A 24-hour gaming café where Koreans play online games and order snacks like ramyeon.", "Hourly rates differ by shop and are paid in advance."] },
+  { id: "d13", cat: "do", area: "hongdae", p: [37.557, 126.924],
+    ko: ["코인노래방", "", "동전이나 카드로 곡 단위로 결제하는 작은 노래방이에요. 혼자도 많이 가요.", "곡 수나 시간 단위로 계산하는 가게라서 요금 방식을 먼저 확인하세요."],
+    en: ["Coin Noraebang", "", "A small karaoke room where you pay per song, often used solo or in small groups.", "Pricing is per song or per time block, so check first."] },
+  { id: "d14", cat: "do", area: "hongdae", p: [37.5535, 126.925],
+    ko: ["보드게임 카페", "", "시간제로 보드게임을 빌려서 친구들과 하는 카페예요.", "처음이면 직원에게 게임 추천을 부탁하면 돼요."],
+    en: ["Board Game Café", "", "A café where you pay by the hour to play board games with friends.", "If you are new, ask the staff for a recommendation."] },
   { id: "d1", cat: "do", area: "seongsu", p: [37.5444, 127.0374],
     ko: ["서울숲 산책", "", "성수동 옆에 있는 큰 공원이에요. 산책한 뒤 근처 카페 거리로 이어지는 코스가 흔해요.", "카페 거리까지 걸어서 이동할 수 있어요."],
     en: ["Seoul Forest walk", "", "A large park next to Seongsu. A common plan is a stroll here, then the café streets nearby.", "The café streets are within walking distance."] },
@@ -376,12 +415,13 @@ var QUERY = {
   e4: ["광장시장", "Gwangjang Market"], e5: ["통인시장", "Tongin Market"], e6: ["뚝섬한강공원", "Ttukseom Hangang Park"],
   d1: ["서울숲", "Seoul Forest"], d2: ["성수동 팝업스토어", "Seongsu-dong pop-up store"], d3: ["경의선숲길", "Gyeongui Line Forest Park"],
   d4: ["홍대 걷고싶은거리", "Hongdae Walking Street"], d5: ["을지로 힙지로", "Euljiro Hipjiro"], d6: ["청계천", "Cheonggyecheon"],
+  s6: ["더현대 서울", "The Hyundai Seoul"], s7: ["한남동 쇼룸", "Hannam-dong showroom"], s8: ["성수동 쇼룸", "Seongsu-dong showroom"], s9: ["압구정로데오", "Apgujeong Rodeo"], s10: ["스타필드 코엑스몰", "Starfield COEX Mall"], s11: ["동묘 구제시장", "Dongmyo vintage market"], s12: ["가로수길", "Garosu-gil"], d9: ["이태원 클럽", "Itaewon club"], d10: ["홍대 클럽", "Hongdae club"], d11: ["홍대 방탈출", "Hongdae escape room"], d12: ["홍대 PC방", "Hongdae PC bang"], d13: ["홍대 코인노래방", "Hongdae coin noraebang"], d14: ["홍대 보드게임카페", "Hongdae board game cafe"],
   d7: ["여의도한강공원", "Yeouido Hangang Park"], d8: ["경복궁", "Gyeongbokgung Palace"],
-  s1: ["동대문 패션타운", "Dongdaemun Fashion Town"], s2: ["남대문시장", "Namdaemun Market"], s3: ["인사동길", "Insadong-gil"], s4: ["명동 쇼핑거리", "Myeongdong Shopping Street"], s5: ["홍대 쇼핑거리", "Hongdae Shopping Street"],
+  s1: ["동대문 패션타운", "Dongdaemun Fashion Town"], s2: ["남대문시장", "Namdaemun Market"],   s5: ["홍대 쇼핑거리", "Hongdae Shopping Street"],
   e7: ["신당동 떡볶이타운", "Sindang-dong Tteokbokki Town"], e8: ["동대문 닭한마리 골목", "Dongdaemun Dak Hanmari Alley"], e9: ["마장동 축산물시장", "Majang-dong Meat Market"], e10: ["공덕시장 족발골목", "Gongdeok Market Jokbal Street"], e11: ["노량진수산시장", "Noryangjin Fish Market"], e12: ["남대문시장 칼국수골목", "Namdaemun Market Kalguksu Alley"], e13: ["무교동 낙지골목", "Mugyo-dong Nakji Alley"], e14: ["청진동 해장국골목", "Cheongjin-dong Haejangguk Alley"], e15: ["익선동 한옥거리", "Ikseon-dong Hanok Street"], e16: ["연남동 경의선숲길", "Yeonnam-dong Gyeongui Line Forest Park"], e17: ["성수동 연무장길", "Seongsu Yeonmujang-gil"], e18: ["건대 양꼬치거리", "Konkuk University Lamb Skewer Street"]
 };
 
-var AREA_GQ = { seongsu: "Seongsu-dong, Seoul", hongdae: "Hongdae, Seoul", euljiro: "Euljiro, Seoul", jongno: "Jongno, Seoul", hangang: "Hangang Park, Seoul", dongdae: "Dongdaemun, Seoul", mapo: "Gongdeok, Seoul", noryang: "Noryangjin, Seoul" };
+var AREA_GQ = { seongsu: "Seongsu-dong, Seoul", hongdae: "Hongdae, Seoul", euljiro: "Euljiro, Seoul", jongno: "Jongno, Seoul", hangang: "Hangang Park, Seoul", dongdae: "Dongdaemun, Seoul", mapo: "Gongdeok, Seoul", noryang: "Noryangjin, Seoul", yeouido: "Yeouido, Seoul", itaewon: "Itaewon, Seoul", gangnam: "Gangnam, Seoul" };
 
 var GMAPS_KEY = "AIzaSyB6mKfIyD_7bH-B-Bo5thV4AInFGk-rfxI";
 function embedHTML(i) {
