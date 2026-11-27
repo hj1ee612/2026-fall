@@ -60,6 +60,8 @@ h1{font-family:var(--f-display);font-weight:400;font-size:clamp(30px,9vw,48px);l
 .chip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:5px 13px;font-size:14px;font-weight:600;min-height:36px}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .chips.foods .chip{font-size:13px;min-height:32px;padding:3px 11px}
+.emb{margin-top:12px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
+.emb iframe{display:block;width:100%;height:280px;border:0}
 .rk{margin:0 0 4px;padding:0;list-style:none}
 .rk li{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-top:1px solid var(--line);font-size:15px}
 .rk li:first-child{border-top:0}
@@ -149,7 +151,7 @@ var UI = {
     h1: "한국인이 진짜 가는 곳",
     sub: "서울의 맛집, 할 것, 편의점과 올리브영 추천을 지도에서 찾아보세요.",
     cats: { eat: "맛집", do: "할 것", shop: "쇼핑", cvs: "편의점", oy: "올리브영", rank: "랭킹", saved: "저장" },
-    foodAll: "전체 음식", src: "출처", asof: "기준", kRank: "순위", kList: "선정 목록 (순위 아님)", noRank: "공식 순위를 찾지 못했어요", fnote: "음식 종류를 고르면 해당하는 곳만 보여요.",
+    pv: "사진·후기 보기", pvc: "닫기", foodAll: "전체 음식", src: "출처", asof: "기준", kRank: "순위", kList: "선정 목록 (순위 아님)", noRank: "공식 순위를 찾지 못했어요", fnote: "음식 종류를 고르면 해당하는 곳만 보여요.",
     notes: {
       eat: "지도의 번호와 아래 카드의 번호가 같아요. 동네 원을 누르면 확대돼요.",
       do: "지도의 번호와 아래 카드의 번호가 같아요. 동네 원을 누르면 확대돼요.",
@@ -169,7 +171,7 @@ var UI = {
     h1: "Where Koreans actually go",
     sub: "Find Seoul eats, things to do, and convenience-store and Olive Young picks on the map.",
     cats: { eat: "Eat", do: "Do", shop: "Shop", cvs: "Convenience", oy: "Olive Young", rank: "Rankings", saved: "Saved" },
-    foodAll: "All food", src: "Source", asof: "As of", kRank: "Ranking", kList: "Curated list (not a ranking)", noRank: "No official ranking found", fnote: "Pick a food type to filter.",
+    pv: "Photos & reviews", pvc: "Close", foodAll: "All food", src: "Source", asof: "As of", kRank: "Ranking", kList: "Curated list (not a ranking)", noRank: "No official ranking found", fnote: "Pick a food type to filter.",
     notes: {
       eat: "Pin numbers match the card numbers below. Tap a neighborhood circle to zoom in.",
       do: "Pin numbers match the card numbers below. Tap a neighborhood circle to zoom in.",
@@ -381,14 +383,22 @@ var QUERY = {
 
 var AREA_GQ = { seongsu: "Seongsu-dong, Seoul", hongdae: "Hongdae, Seoul", euljiro: "Euljiro, Seoul", jongno: "Jongno, Seoul", hangang: "Hangang Park, Seoul", dongdae: "Dongdaemun, Seoul", mapo: "Gongdeok, Seoul", noryang: "Noryangjin, Seoul" };
 
+var GMAPS_KEY = "";
+function embedHTML(i) {
+  var q = QUERY[i.id];
+  if (!GMAPS_KEY || !q || state.emb !== i.id) return "";
+  var src = "https://www.google.com/maps/embed/v1/place?key=" + encodeURIComponent(GMAPS_KEY) + "&q=" + encodeURIComponent(q[1] + " Seoul") + "&language=" + state.lang;
+  return "<div class=\"emb\"><iframe loading=\"lazy\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen src=\"" + src + "\" title=\"" + esc(q[1]) + "\"></iframe></div>";
+}
 function linkRow(i, L) {
   var q = QUERY[i.id];
   if (!q) return "";
   var g = "https://www.google.com/maps/search/?api=1&amp;query=" + encodeURIComponent(q[1] + " Seoul");
   return "<div class=\"openrow\">" +
-    "<a class=\"gbtn\" href=\"" + g + "\" target=\"_blank\" rel=\"noopener\">" + esc(L.openGoogle) + "</a>" +
+    (GMAPS_KEY ? "<button type=\"button\" class=\"gbtn\" data-emb=\"" + i.id + "\">" + esc(state.emb === i.id ? L.pvc : L.pv) + "</button>" : "") +
+    "<a class=\"" + (GMAPS_KEY ? "alt" : "gbtn") + "\" href=\"" + g + "\" target=\"_blank\" rel=\"noopener\">" + esc(L.openGoogle) + "</a>" +
     "<a class=\"alt\" href=\"https://map.naver.com/p/search/" + encodeURIComponent(q[0]) + "\" target=\"_blank\" rel=\"noopener\">" + esc(L.naver) + "</a>" +
-    "<a class=\"alt\" href=\"https://map.kakao.com/link/search/" + encodeURIComponent(q[0]) + "\" target=\"_blank\" rel=\"noopener\">" + esc(L.kakao) + "</a></div>";
+    "<a class=\"alt\" href=\"https://map.kakao.com/link/search/" + encodeURIComponent(q[0]) + "\" target=\"_blank\" rel=\"noopener\">" + esc(L.kakao) + "</a></div>" + embedHTML(i);
 }
 
 
@@ -452,7 +462,7 @@ var RANKS = [
 ];
 
 var CAT_ORDER = ["eat", "do", "shop", "cvs", "oy", "rank", "saved"];
-var state = { lang: "ko", cat: "eat", area: "all", food: "all", sel: null, saved: [] };
+var state = { lang: "ko", cat: "eat", area: "all", food: "all", emb: null, sel: null, saved: [] };
 
 try {
   var sl = localStorage.getItem("lp-lang");
@@ -663,6 +673,7 @@ document.addEventListener("click", function (e) {
   if (b.id === "lang-ko") { setLang("ko"); return; }
   if (b.id === "lang-en") { setLang("en"); return; }
   if (b.dataset.cat) { state.cat = b.dataset.cat; state.sel = null; render(); return; }
+  if (b.dataset.emb) { state.emb = state.emb === b.dataset.emb ? null : b.dataset.emb; render(); return; }
   if (b.dataset.food) { state.food = b.dataset.food; state.area = "all"; state.sel = null; render(); return; }
   if (b.dataset.area) { state.area = b.dataset.area; state.sel = null; render(); return; }
   if (b.dataset.loc) { selectItem(b.dataset.loc, "card"); return; }
