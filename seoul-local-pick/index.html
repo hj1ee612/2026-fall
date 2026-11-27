@@ -97,16 +97,10 @@ h3{margin:2px 0 6px;font-size:18px;line-height:1.3;font-weight:600}
 .tip b{color:var(--ink);font-weight:600;margin-right:6px}
 .empty{padding:28px 8px;color:var(--muted);text-align:center}
 .foot{margin-top:28px;font-size:13px;color:var(--muted)}
-.kpin{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--cc);color:var(--on);font:600 13px var(--f-body);border:2px solid var(--card);box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer}
-.kpin.sel{width:34px;height:34px;box-shadow:0 0 0 3px var(--ink)}
-.kbub{position:relative;min-width:34px;height:34px;padding:0 6px;border-radius:17px;display:grid;place-items:center;background:var(--cc);color:var(--on);font:600 14px var(--f-body);border:2px solid var(--card);box-shadow:0 1px 4px rgba(0,0,0,.35);cursor:pointer}
-.kinfo{position:relative;width:16px;height:16px;border-radius:50%;background:var(--cc);border:2px solid var(--card);box-shadow:0 1px 4px rgba(0,0,0,.35)}
-.kbub small,.kinfo small,.kpin small{position:absolute;top:36px;left:50%;transform:translateX(-50%);white-space:nowrap;color:#101828;font:600 11px var(--f-body);text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 3px #fff}
-.kinfo small{top:18px}
-.kpin{position:relative}
-.kpin small{top:100%;margin-top:3px}
-.links{display:flex;flex-wrap:wrap;gap:4px 14px;margin:10px 0 0;font-size:13px}
-.links a{color:var(--muted);font-weight:600;text-underline-offset:3px;min-height:28px;display:inline-flex;align-items:center}
+.openrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin-top:12px}
+.gbtn{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:999px;background:var(--ink);color:var(--bg);font-weight:600;font-size:14px;text-decoration:none}
+.alt{font-size:13px;font-weight:600;color:var(--muted);text-underline-offset:3px}
+.cap a{color:var(--ink);font-weight:600;text-underline-offset:3px}
 </style>
 </head>
 <body>
@@ -130,6 +124,7 @@ h3{margin:2px 0 6px;font-size:18px;line-height:1.3;font-weight:600}
   <section class="mapwrap" id="mapwrap">
     <div class="mapbox" id="mapbox"></div>
     <p class="cap" id="cap"></p>
+    <p class="cap" id="maplink" hidden></p>
   </section>
 
   <div class="note" id="note"></div>
@@ -153,7 +148,7 @@ var UI = {
     memo: "로컬 메모", empty: "아직 저장한 곳이 없어요. 카드의 하트를 눌러 보세요.",
     save: "저장", unsave: "저장 취소", showmap: "지도에서 보기",
     cap: "개략도예요. 축척과 위치는 정확하지 않아요.", mapLabel: "서울 개략 지도",
-    river: "한강", naver: "네이버지도", google: "구글맵", kakao: "카카오맵",
+    river: "한강", naver: "네이버지도", google: "구글맵", kakao: "카카오맵", openGoogle: "구글맵에서 열기", areaLink: "구글맵에서 이 동네 보기",
     foot: "샘플 큐레이션이에요. 영업 시간, 가격, 판매 여부는 방문 전에 확인하세요."
   },
   en: {
@@ -170,7 +165,7 @@ var UI = {
     memo: "Local note", empty: "Nothing saved yet. Tap the heart on a card.",
     save: "Save", unsave: "Remove from saved", showmap: "Show on map",
     cap: "Schematic map. Not to scale, and positions are approximate.", mapLabel: "Schematic map of Seoul",
-    river: "Han River", naver: "Naver Map", google: "Google Maps", kakao: "Kakao Map",
+    river: "Han River", naver: "Naver Map", google: "Google Maps", kakao: "Kakao Map", openGoogle: "Open in Google Maps", areaLink: "View this area in Google Maps",
     foot: "Sample curation. Check opening hours, prices and availability before you go."
   }
 };
@@ -305,171 +300,16 @@ var QUERY = {
   d7: ["여의도한강공원", "Yeouido Hangang Park"]
 };
 
+var AREA_GQ = { seongsu: "Seongsu-dong, Seoul", hongdae: "Hongdae, Seoul", euljiro: "Euljiro, Seoul", jongno: "Jongno, Seoul", hangang: "Hangang Park, Seoul" };
+
 function linkRow(i, L) {
   var q = QUERY[i.id];
   if (!q) return "";
-  function a(href, label) { return "<a href=\"" + href + "\" target=\"_blank\" rel=\"noopener\">" + esc(label) + "</a>"; }
-  return "<p class=\"links\">" +
-    a("https://map.naver.com/p/search/" + encodeURIComponent(q[0]), L.naver) +
-    a("https://www.google.com/maps/search/?api=1&amp;query=" + encodeURIComponent(q[1]), L.google) +
-    a("https://map.kakao.com/link/search/" + encodeURIComponent(q[0]), L.kakao) + "</p>";
-}
-
-/* Paste your Kakao JavaScript key between the quotes. Without a key, or if Kakao refuses the page's address, the page falls back to the drawn map. */
-var KAKAO_KEY = "a6b85ba2f9e4ac4b04964e02dae95d61";
-var realMap = false, kmap = null, koverlays = [];
-
-function loadKakao(done) {
-  if (!KAKAO_KEY || KAKAO_KEY === "YOUR_KEY") { done(false); return; }
-  var s = document.createElement("script");
-  s.src = "https://dapi.kakao.com/v2/maps/sdk.js?appkey=" + encodeURIComponent(KAKAO_KEY) + "&autoload=false";
-  s.onload = function () {
-    try { kakao.maps.load(function () { done(true); }); } catch (e) { done(false); }
-  };
-  s.onerror = function () { done(false); };
-  document.head.appendChild(s);
-}
-
-function kEl(cls, html, cc) {
-  var d = document.createElement("div");
-  d.className = cls;
-  d.innerHTML = html;
-  d.style.setProperty("--cc", cc);
-  return d;
-}
-function kPut(pt, el) {
-  var o = new kakao.maps.CustomOverlay({ position: new kakao.maps.LatLng(pt[0], pt[1]), content: el, xAnchor: 0.5, yAnchor: 0.5, clickable: true, zIndex: 1 });
-  o.setMap(kmap);
-  koverlays.push(o);
-}
-
-function renderKakao(items) {
-  var box = document.getElementById("mapbox");
-  if (!kmap) {
-    box.innerHTML = "<div id=\"kmap\" style=\"width:100%;height:100%\"></div>";
-    kmap = new kakao.maps.Map(document.getElementById("kmap"), { center: new kakao.maps.LatLng(37.55, 126.99), level: 8 });
-  }
-  kmap.relayout();
-  koverlays.forEach(function (o) { o.setMap(null); });
-  koverlays = [];
-  var pts = [];
-
-  if (state.cat === "oy") {
-    OY_SPOTS.forEach(function (o) {
-      pts.push(o.p);
-      kPut(o.p, kEl("kinfo", "<small>" + esc(o[state.lang]) + "</small>", catColor("oy")));
-    });
-  } else if (state.area === "all") {
-    AREAS.slice(1).forEach(function (a) {
-      var inArea = items.filter(function (i) { return i.area === a.id; });
-      if (!inArea.length) return;
-      var lat = 0, lng = 0;
-      inArea.forEach(function (i) { lat += i.p[0]; lng += i.p[1]; });
-      var pt = [lat / inArea.length, lng / inArea.length];
-      pts.push(pt);
-      var el = kEl("kbub", inArea.length + "<small>" + esc(a[state.lang]) + "</small>", catColor(state.cat));
-      el.addEventListener("click", function () { state.area = a.id; state.sel = null; render(); });
-      kPut(pt, el);
-    });
-  } else {
-    items.forEach(function (i, idx) {
-      pts.push(i.p);
-      var tag = (state.lang === "en" && QUERY[i.id]) ? "<small>" + esc(QUERY[i.id][1]) + "</small>" : "";
-      var el = kEl("kpin" + (i.id === state.sel ? " sel" : ""), String(idx + 1) + tag, catColor(i.cat));
-      el.setAttribute("role", "button");
-      el.setAttribute("aria-label", (idx + 1) + ". " + i[state.lang][0]);
-      el.addEventListener("click", function () { selectItem(i.id, "pin"); });
-      kPut(i.p, el);
-    });
-  }
-
-  if (pts.length) {
-    var bounds = new kakao.maps.LatLngBounds();
-    pts.forEach(function (p) {
-      bounds.extend(new kakao.maps.LatLng(p[0], p[1]));
-      bounds.extend(new kakao.maps.LatLng(p[0] + 0.004, p[1] + 0.004));
-      bounds.extend(new kakao.maps.LatLng(p[0] - 0.004, p[1] - 0.004));
-    });
-    kmap.setBounds(bounds, 30, 30, 30, 30);
-  }
-}
-
-/* Google Maps. Paste your Google Maps JavaScript API key between the quotes. With no key the page uses the Kakao map below, and with neither it falls back to the drawn map. */
-var GOOGLE_KEY = "YOUR_KEY";
-var provider = null, gmap = null, gmarkers = [], gLibs = null;
-
-function loadGoogle(done) {
-  if (!GOOGLE_KEY || GOOGLE_KEY === "YOUR_KEY") { done(false); return; }
-  window.__gmInit = function () {
-    Promise.all([google.maps.importLibrary("maps"), google.maps.importLibrary("marker")])
-      .then(function (libs) { gLibs = { maps: libs[0], marker: libs[1] }; done(true); })
-      .catch(function () { done(false); });
-  };
-  /* Google calls this when the key or the page address is rejected. */
-  window.gm_authFailure = function () { realMap = false; gmap = null; render(); };
-  var s = document.createElement("script");
-  s.async = true;
-  s.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(GOOGLE_KEY) + "&loading=async&language=" + state.lang + "&region=KR&callback=__gmInit";
-  s.onerror = function () { done(false); };
-  document.head.appendChild(s);
-}
-
-function gPut(pt, el) {
-  el.style.transform = "translateY(50%)";
-  gmarkers.push(new gLibs.marker.AdvancedMarkerElement({ map: gmap, position: { lat: pt[0], lng: pt[1] }, content: el, gmpClickable: true }));
-}
-
-function renderGoogle(items) {
-  var box = document.getElementById("mapbox");
-  if (!gmap) {
-    box.innerHTML = "<div id=\"gmap\" style=\"width:100%;height:100%\"></div>";
-    gmap = new gLibs.maps.Map(document.getElementById("gmap"), {
-      center: { lat: 37.55, lng: 126.99 }, zoom: 11, mapId: "DEMO_MAP_ID",
-      clickableIcons: false, fullscreenControl: false, streetViewControl: false, mapTypeControl: false
-    });
-  }
-  google.maps.event.trigger(gmap, "resize");
-  gmarkers.forEach(function (m) { m.map = null; });
-  gmarkers = [];
-  var pts = [];
-
-  if (state.cat === "oy") {
-    OY_SPOTS.forEach(function (o) {
-      pts.push(o.p);
-      gPut(o.p, kEl("kinfo", "<small>" + esc(o[state.lang]) + "</small>", catColor("oy")));
-    });
-  } else if (state.area === "all") {
-    AREAS.slice(1).forEach(function (a) {
-      var inArea = items.filter(function (i) { return i.area === a.id; });
-      if (!inArea.length) return;
-      var lat = 0, lng = 0;
-      inArea.forEach(function (i) { lat += i.p[0]; lng += i.p[1]; });
-      var pt = [lat / inArea.length, lng / inArea.length];
-      pts.push(pt);
-      var el = kEl("kbub", inArea.length + "<small>" + esc(a[state.lang]) + "</small>", catColor(state.cat));
-      el.addEventListener("click", function () { state.area = a.id; state.sel = null; render(); });
-      gPut(pt, el);
-    });
-  } else {
-    items.forEach(function (i, idx) {
-      pts.push(i.p);
-      var tag = (state.lang === "en" && QUERY[i.id]) ? "<small>" + esc(QUERY[i.id][1]) + "</small>" : "";
-      var el = kEl("kpin" + (i.id === state.sel ? " sel" : ""), String(idx + 1) + tag, catColor(i.cat));
-      el.setAttribute("role", "button");
-      el.setAttribute("aria-label", (idx + 1) + ". " + i[state.lang][0]);
-      el.addEventListener("click", function () { selectItem(i.id, "pin"); });
-      gPut(i.p, el);
-    });
-  }
-
-  if (pts.length) {
-    var bounds = new google.maps.LatLngBounds();
-    pts.forEach(function (p) {
-      bounds.extend({ lat: p[0] + 0.004, lng: p[1] + 0.004 });
-      bounds.extend({ lat: p[0] - 0.004, lng: p[1] - 0.004 });
-    });
-    gmap.fitBounds(bounds, 30);
-  }
+  var g = "https://www.google.com/maps/search/?api=1&amp;query=" + encodeURIComponent(q[1] + " Seoul");
+  return "<div class=\"openrow\">" +
+    "<a class=\"gbtn\" href=\"" + g + "\" target=\"_blank\" rel=\"noopener\">" + esc(L.openGoogle) + "</a>" +
+    "<a class=\"alt\" href=\"https://map.naver.com/p/search/" + encodeURIComponent(q[0]) + "\" target=\"_blank\" rel=\"noopener\">" + esc(L.naver) + "</a>" +
+    "<a class=\"alt\" href=\"https://map.kakao.com/link/search/" + encodeURIComponent(q[0]) + "\" target=\"_blank\" rel=\"noopener\">" + esc(L.kakao) + "</a></div>";
 }
 
 var CAT_ORDER = ["eat", "do", "cvs", "oy", "saved"];
@@ -481,9 +321,6 @@ try {
   var ss = JSON.parse(localStorage.getItem("lp-saved") || "[]");
   if (Array.isArray(ss)) state.saved = ss;
 } catch (e) {}
-
-var hashLang = (location.hash || "").replace("#", "");
-if (hashLang === "en" || hashLang === "ko") state.lang = hashLang;
 
 function persist() {
   try {
@@ -559,7 +396,11 @@ function render() {
   document.getElementById("h1").textContent = L.h1;
   document.getElementById("sub").textContent = L.sub;
   document.getElementById("foot").textContent = L.foot;
-  document.getElementById("cap").textContent = realMap ? "" : L.cap;
+  document.getElementById("cap").textContent = L.cap;
+  var gq = (isGeo() && state.area !== "all") ? AREA_GQ[state.area] : null;
+  var ml = document.getElementById("maplink");
+  ml.hidden = !gq;
+  if (gq) ml.innerHTML = "<a href=\"https://www.google.com/maps/search/?api=1&amp;query=" + encodeURIComponent(gq) + "\" target=\"_blank\" rel=\"noopener\">" + esc(L.areaLink) + "</a>";
   document.getElementById("lang-ko").setAttribute("aria-pressed", state.lang === "ko");
   document.getElementById("lang-en").setAttribute("aria-pressed", state.lang === "en");
 
@@ -581,14 +422,7 @@ function render() {
   var items = visible();
   var showMap = isGeo() || state.cat === "oy";
   document.getElementById("mapwrap").hidden = !showMap;
-  if (showMap) {
-    if (realMap) {
-      try { if (provider === "google") renderGoogle(items); else renderKakao(items); }
-      catch (e) { realMap = false; kmap = null; gmap = null; document.getElementById("mapbox").innerHTML = mapHTML(items); }
-    } else {
-      document.getElementById("mapbox").innerHTML = mapHTML(items);
-    }
-  }
+  if (showMap) document.getElementById("mapbox").innerHTML = mapHTML(items);
 
   var note = document.getElementById("note");
   note.style.setProperty("--cc", catColor(state.cat));
@@ -632,11 +466,9 @@ function selectItem(id, from) {
   else scrollToEl("mapbox", "start");
 }
 
-/* Google fixes the map language when it loads, so switching language reloads the page when Google is the map. */
 function setLang(l) {
   state.lang = l;
   persist();
-  if (realMap && provider === "google") { location.hash = l; location.reload(); return; }
   render();
 }
 
@@ -665,10 +497,6 @@ document.addEventListener("keydown", function (e) {
 });
 
 render();
-loadGoogle(function (ok) {
-  if (ok) { provider = "google"; realMap = true; render(); return; }
-  loadKakao(function (ok2) { if (ok2) { provider = "kakao"; realMap = true; render(); } });
-});
 </script>
 </body>
 </html>
