@@ -584,7 +584,9 @@ function render() {
   var items = visible();
   var showMap = isGeo() || state.cat === "oy";
   document.getElementById("mapwrap").hidden = !showMap;
-  if (showMap) document.getElementById("mapbox").innerHTML = mapHTML(items);
+  var useG = isGeo() && GM.ready && !GM.fail;
+  document.getElementById("cap").hidden = useG;
+  if (showMap) { if (useG) drawGoogle(items); else { GM.box = false; document.getElementById("mapbox").innerHTML = mapHTML(items); } }
 
   var note = document.getElementById("note");
   note.style.setProperty("--cc", catColor(state.cat));
@@ -644,6 +646,45 @@ function renderRanks(L) {
   document.getElementById("list").innerHTML = html;
 }
 
+var GM = { loaded: false, ready: false, fail: false, map: null, el: null, markers: [], box: false };
+var GCOL = { eat: "#D83A2E", "do": "#1F6FD6", shop: "#C2185B" };
+function loadGoogle() {
+  if (!GMAPS_KEY || GM.loaded) return;
+  GM.loaded = true;
+  window.gmInit = function () { GM.ready = true; render(); };
+  window.gm_authFailure = function () { GM.fail = true; GM.ready = false; GM.box = false; render(); };
+  var sc = document.createElement("script");
+  sc.src = "https://maps.googleapis.com/maps/api/js?key=" + encodeURIComponent(GMAPS_KEY) + "&language=" + state.lang + "&callback=gmInit";
+  sc.async = true;
+  sc.onerror = function () { GM.fail = true; GM.box = false; render(); };
+  document.head.appendChild(sc);
+}
+function drawGoogle(items) {
+  var box = document.getElementById("mapbox");
+  if (!GM.el) { GM.el = document.createElement("div"); GM.el.style.cssText = "width:100%;height:100%;min-height:300px"; }
+  if (!GM.box) { box.innerHTML = ""; box.appendChild(GM.el); GM.box = true; }
+  if (!GM.map) GM.map = new google.maps.Map(GM.el, { center: { lat: 37.5665, lng: 126.978 }, zoom: 12, disableDefaultUI: true, zoomControl: true, gestureHandling: "greedy", clickableIcons: false });
+  GM.markers.forEach(function (m) { m.setMap(null); });
+  GM.markers = [];
+  var b = new google.maps.LatLngBounds(), sel = null;
+  items.forEach(function (it, idx) {
+    var pos = { lat: it.p[0], lng: it.p[1] }, on = it.id === state.sel;
+    var mk = new google.maps.Marker({ map: GM.map, position: pos, zIndex: on ? 999 : idx,
+      icon: { path: google.maps.SymbolPath.CIRCLE, scale: on ? 17 : 13, fillColor: GCOL[it.cat] || "#D83A2E", fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2 },
+      label: { text: String(idx + 1), color: "#fff", fontWeight: "700", fontSize: "13px" } });
+    mk.addListener("click", function () { selectItem(it.id, "pin"); });
+    GM.markers.push(mk);
+    b.extend(pos);
+    if (on) sel = pos;
+  });
+  if (sel) { GM.map.panTo(sel); return; }
+  if (items.length === 1) { GM.map.setCenter({ lat: items[0].p[0], lng: items[0].p[1] }); GM.map.setZoom(15); }
+  else if (items.length) {
+    GM.map.fitBounds(b, 40);
+    google.maps.event.addListenerOnce(GM.map, "idle", function () { if (GM.map.getZoom() > 16) GM.map.setZoom(16); });
+  }
+}
+
 function scrollToEl(id, block) {
   var el = document.getElementById(id);
   if (el && el.scrollIntoView) { try { el.scrollIntoView({ behavior: "smooth", block: block }); } catch (e) { el.scrollIntoView(); } }
@@ -658,8 +699,10 @@ function selectItem(id, from) {
 }
 
 function setLang(l) {
+  var same = state.lang === l;
   state.lang = l;
   persist();
+  if (!same && GM.loaded) { location.reload(); return; }
   render();
 }
 
@@ -690,6 +733,7 @@ document.addEventListener("keydown", function (e) {
 });
 
 render();
+loadGoogle();
 </script>
 </body>
 </html>
